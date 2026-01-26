@@ -1,0 +1,30 @@
+{
+  "name": "@gromlab/create",
+  "version": "0.1.0",
+  "description": "Template-based file generator CLI",
+  "bin": {
+    "gromlab-create": "dist/cli.js"
+  },
+  "main": "dist/cli.js",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsc -p tsconfig.json -w",
+    "prepare": "npm run build"
+  },
+  "dependencies": {
+    "archy": "^1.0.0",
+    "boxen": "^5.1.2",
+    "chalk": "^4.1.2",
+    "change-case-all": "^2.1.0",
+    "directory-tree": "^3.5.2",
+    "figures": "^3.2.0"
+  },
+  "devDependencies": {
+    "@types/archy": "^0.0.31",
+    "@types/node": "^20.11.24",
+    "typescript": "^5.8.3"
+  }
+}
