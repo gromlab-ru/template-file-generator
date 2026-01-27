@@ -1,8 +1,25 @@
 {
   "name": "@gromlab/create",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "Template-based file generator CLI",
+  "author": "Gromov Sergei",
   "license": "MIT",
+  "homepage": "https://gromlab.ru/gromov/create",
+  "repository": {
+    "type": "git",
+    "url": "https://gromlab.ru/gromov/create.git"
+  },
+  "bugs": {
+    "url": "https://gromlab.ru/gromov/create/issues"
+  },
+  "keywords": [
+    "cli",
+    "generator",
+    "template",
+    "scaffold",
+    "boilerplate",
+    "file-generator"
+  ],
   "publishConfig": {
     "access": "public"
   },
