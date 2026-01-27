@@ -5,14 +5,28 @@ import { detectRunMode } from './runtime';
 
 const BIN_NAMES = ['gromlab-create', 'create'];
 
-function templatesDir(cwd: string): string {
-  return path.resolve(cwd, '.templates');
+function findNearestTemplatesDir(startDir: string): string | undefined {
+  let current = path.resolve(startDir);
+  while (true) {
+    const candidate = path.join(current, '.templates');
+    try {
+      if (fs.existsSync(candidate) && fs.statSync(candidate).isDirectory()) {
+        return candidate;
+      }
+    } catch {
+      // ignore errors and keep walking up
+    }
+    const parent = path.dirname(current);
+    if (parent === current) break;
+    current = parent;
+  }
+  return undefined;
 }
 
 function listTemplates(cwd: string): string[] {
-  const dir = templatesDir(cwd);
+  const dir = findNearestTemplatesDir(cwd);
   try {
-    if (!fs.existsSync(dir) || !fs.statSync(dir).isDirectory()) return [];
+    if (!dir) return [];
     return listTemplateNames(dir);
   } catch {
     return [];
@@ -20,7 +34,9 @@ function listTemplates(cwd: string): string[] {
 }
 
 function listTemplateVars(cwd: string, templateName: string): string[] {
-  const dir = path.join(templatesDir(cwd), templateName);
+  const root = findNearestTemplatesDir(cwd);
+  if (!root) return [];
+  const dir = path.join(root, templateName);
   try {
     if (!fs.existsSync(dir) || !fs.statSync(dir).isDirectory()) return [];
     const vars = Array.from(collectTemplateVariables(dir))
@@ -225,7 +241,8 @@ export function handleInternalCommand(args: string[], cwd: string = process.cwd(
       return true;
     }
 
-    const normalized = shell.trim().toLowerCase();
+    let normalized = shell.trim().toLowerCase();
+    if (normalized === 'zh') normalized = 'zsh';
     let script = '';
     if (normalized === 'bash') script = buildBashCompletion();
     if (normalized === 'zsh') script = buildZshCompletion();
