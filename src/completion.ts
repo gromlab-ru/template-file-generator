@@ -4,6 +4,8 @@ import { collectTemplateVariables, listTemplateNames } from './templateUtils';
 import { detectRunMode } from './runtime';
 
 const BIN_NAMES = ['gromlab-create', 'create'];
+const COMPLETION_BLOCK_START = '# gromlab-create completion start';
+const COMPLETION_BLOCK_END = '# gromlab-create completion end';
 
 function findNearestTemplatesDir(startDir: string): string | undefined {
   let current = path.resolve(startDir);
@@ -205,9 +207,69 @@ function resolveShell(args: string[]): string | undefined {
   return candidate;
 }
 
+function normalizeShellName(shell?: string): string | undefined {
+  if (!shell) return undefined;
+  let normalized = shell.trim().toLowerCase();
+  if (normalized === 'zh') normalized = 'zsh';
+  if (normalized === 'bash' || normalized === 'zsh' || normalized === 'fish') return normalized;
+  return undefined;
+}
+
+function detectShellFromEnv(): string | undefined {
+  const envShell = process.env.SHELL ?? '';
+  const base = path.basename(envShell).toLowerCase();
+  if (base === 'bash' || base === 'zsh' || base === 'fish') return base;
+  return undefined;
+}
+
 function printCompletionUsage() {
   console.log('Использование:');
   console.log('  gromlab-create completion --shell <bash|zsh|fish>');
+  console.log('  gromlab-create install-autocomplete [--shell <bash|zsh|fish>]');
+}
+
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function installForBashOrZsh(shell: 'bash' | 'zsh') {
+  const home = process.env.HOME ?? '';
+  const rcFile = shell === 'bash'
+    ? path.join(home, '.bashrc')
+    : path.join(home, '.zshrc');
+  const sourceLine = `source <(gromlab-create completion --shell ${shell})`;
+  const block = `${COMPLETION_BLOCK_START}\n${sourceLine}\n${COMPLETION_BLOCK_END}`;
+  const start = escapeRegExp(COMPLETION_BLOCK_START);
+  const end = escapeRegExp(COMPLETION_BLOCK_END);
+  const blockRegex = new RegExp(`${start}[\\s\\S]*?${end}`, 'm');
+
+  let content = '';
+  try {
+    if (fs.existsSync(rcFile)) {
+      content = fs.readFileSync(rcFile, 'utf8');
+    }
+  } catch {
+    content = '';
+  }
+
+  if (blockRegex.test(content)) {
+    content = content.replace(blockRegex, block);
+  } else {
+    const prefix = content.length > 0 && !content.endsWith('\n') ? '\n' : '';
+    content = `${content}${prefix}${block}\n`;
+  }
+
+  fs.writeFileSync(rcFile, content, 'utf8');
+  console.log(`Автодополнение установлено в ${rcFile}`);
+}
+
+function installForFish() {
+  const home = process.env.HOME ?? '';
+  const dir = path.join(home, '.config', 'fish', 'completions');
+  const filePath = path.join(dir, 'gromlab-create.fish');
+  fs.mkdirSync(dir, { recursive: true });
+  fs.writeFileSync(filePath, buildFishCompletion(), 'utf8');
+  console.log(`Автодополнение установлено в ${filePath}`);
 }
 
 export function handleInternalCommand(args: string[], cwd: string = process.cwd()): boolean {
@@ -234,19 +296,17 @@ export function handleInternalCommand(args: string[], cwd: string = process.cwd(
       return true;
     }
 
-    const shell = resolveShell(rest);
+    const shell = normalizeShellName(resolveShell(rest));
     if (!shell) {
       printCompletionUsage();
       process.exitCode = 1;
       return true;
     }
 
-    let normalized = shell.trim().toLowerCase();
-    if (normalized === 'zh') normalized = 'zsh';
     let script = '';
-    if (normalized === 'bash') script = buildBashCompletion();
-    if (normalized === 'zsh') script = buildZshCompletion();
-    if (normalized === 'fish') script = buildFishCompletion();
+    if (shell === 'bash') script = buildBashCompletion();
+    if (shell === 'zsh') script = buildZshCompletion();
+    if (shell === 'fish') script = buildFishCompletion();
 
     if (!script) {
       console.error('Неизвестный shell. Доступно: bash, zsh, fish.');
@@ -255,6 +315,35 @@ export function handleInternalCommand(args: string[], cwd: string = process.cwd(
     }
 
     console.log(script);
+    return true;
+  }
+
+  if (command === 'install-autocomplete' || command === 'install-shell') {
+    if (detectRunMode() !== 'global') {
+      console.error('Автодополнение доступно только для глобальной установки CLI.');
+      process.exitCode = 1;
+      return true;
+    }
+
+    const explicitShell = normalizeShellName(resolveShell(rest));
+    const shell = explicitShell ?? detectShellFromEnv();
+    if (!shell) {
+      console.error('Не удалось определить shell. Укажите --shell <bash|zsh|fish>.');
+      process.exitCode = 1;
+      return true;
+    }
+
+    if (shell === 'bash' || shell === 'zsh') {
+      installForBashOrZsh(shell);
+      return true;
+    }
+    if (shell === 'fish') {
+      installForFish();
+      return true;
+    }
+
+    console.error('Неизвестный shell. Доступно: bash, zsh, fish.');
+    process.exitCode = 1;
     return true;
   }
 

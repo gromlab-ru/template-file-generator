@@ -3,7 +3,7 @@ import { ParsedArgs } from './types';
 export function printHelp() {
   const lines = [
     'Использование:',
-    '  npx @gromlab/create <шаблон> <имя> [путь] [опции]',
+    '  gromlab-create <шаблон> <имя> [путь] [опции]',
     '',
     'Аргументы:',
     '  <шаблон>            Имя шаблона',
@@ -12,6 +12,7 @@ export function printHelp() {
     '',
     'Команды:',
     '  completion --shell <bash|zsh|fish>  Сгенерировать скрипт автодополнения',
+    '  install-autocomplete [--shell <bash|zsh|fish>]  Установить автодополнение',
     '',
     'Опции:',
     '  --<var> <value>      Переменная шаблона (поддерживается любой --key <value>)',
@@ -20,8 +21,8 @@ export function printHelp() {
     '  -h, --help           Показать эту справку',
     '',
     'Примеры:',
-    '  npx @gromlab/create component Button',
-    '  npx @gromlab/create component Button src/components'
+    '  gromlab-create component Button',
+    '  gromlab-create component Button src/components'
   ];
   console.log(lines.join('\n'));
 }

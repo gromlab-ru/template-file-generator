@@ -15,17 +15,28 @@ npm i -g @gromlab/create
 
 ## Автодополнение
 
-Сгенерируйте скрипт и подключите его в оболочке:
+Установка вместе с автодополнением (одной командой):
 
+**bash**
 ```bash
-gromlab-create completion --shell bash
+npm i -g @gromlab/create && create install-autocomplete --shell bash && source ~/.bashrc
+```
+
+**zsh**
+```bash
+npm i -g @gromlab/create && create install-autocomplete --shell zsh && source ~/.zshrc
+```
+
+**fish**
+```bash
+npm i -g @gromlab/create && create install-autocomplete --shell fish && exec fish
 ```
 
 
 ## Использование
 
 ```bash
-npx @gromlab/create <шаблон> <имя> [путь] [опции]
+create <шаблон> <имя> [путь] [опции]
 ```
 
 Если `[путь]` не указан, файлы создаются в директории, где запущен CLI.
@@ -34,10 +45,10 @@ npx @gromlab/create <шаблон> <имя> [путь] [опции]
 
 ```bash
 # Создать компонент из шаблона
-npx @gromlab/create component Button
+create component Button
 
 # Указать папку вывода позиционно
-npx @gromlab/create component Button src/components
+create component Button src/components
 ```
 
 ## Шаблоны
