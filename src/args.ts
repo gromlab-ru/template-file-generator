@@ -3,22 +3,22 @@ import { ParsedArgs } from './types';
 export function printHelp() {
   const lines = [
     'Использование:',
-    '  npx @gromlab/create <template> [name] [options]',
+    '  npx @gromlab/create <шаблон> <имя> [путь] [опции]',
+    '',
+    'Аргументы:',
+    '  <шаблон>            Имя шаблона',
+    '  <имя>               Значение переменной name (обязательный аргумент)',
+    '  [путь]              Папка вывода (по умолчанию: текущая директория)',
     '',
     'Опции:',
     '  --<var> <value>      Переменная шаблона (поддерживается любой --key <value>)',
-    '  [name]               Сокращение для --name',
-    '  --templates <path>   Папка шаблонов (по умолчанию: .templates)',
-    '  --templates-path     Алиас для --templates',
-    '  --out <path>         Папка вывода (по умолчанию: текущая директория)',
     '  --overwrite          Перезаписывать существующие файлы',
-    '  --dry-run            Показать результат без записи на диск',
+    '  --skip-update        Не проверять обновления CLI',
     '  -h, --help           Показать эту справку',
     '',
     'Примеры:',
-    '  npx @gromlab/create component --name test',
-    '  npx @gromlab/create component --name test --out src/components',
-    '  npx @gromlab/create component --name test --templates /path/to/.templates'
+    '  npx @gromlab/create component Button',
+    '  npx @gromlab/create component Button src/components'
   ];
   console.log(lines.join('\n'));
 }
@@ -35,7 +35,7 @@ export function parseArgs(argv: string[]): ParsedArgs {
   const parsed: ParsedArgs = {
     vars: {},
     overwrite: false,
-    dryRun: false,
+    skipUpdate: false,
     help: false,
     extra: []
   };
@@ -52,11 +52,10 @@ export function parseArgs(argv: string[]): ParsedArgs {
       parsed.overwrite = true;
       continue;
     }
-    if (arg === '--dry-run') {
-      parsed.dryRun = true;
+    if (arg === '--skip-update') {
+      parsed.skipUpdate = true;
       continue;
     }
-
     if (arg.startsWith('--')) {
       const eqIndex = arg.indexOf('=');
       const key = eqIndex === -1 ? arg.slice(2) : arg.slice(2, eqIndex);
@@ -65,17 +64,11 @@ export function parseArgs(argv: string[]): ParsedArgs {
       if (!key) continue;
 
       if (key === 'templates' || key === 'templatesPath' || key === 'templates-path') {
-        const value = inlineValue ?? consumeValue(args, i, key);
-        if (inlineValue === undefined) i++;
-        parsed.templatesPath = value;
-        continue;
+        throw new Error('Опция --templates не поддерживается');
       }
 
       if (key === 'out' || key === 'output') {
-        const value = inlineValue ?? consumeValue(args, i, key);
-        if (inlineValue === undefined) i++;
-        parsed.outDir = value;
-        continue;
+        throw new Error('Опция --out не поддерживается');
       }
 
       const value = inlineValue ?? consumeValue(args, i, key);
@@ -91,6 +84,11 @@ export function parseArgs(argv: string[]): ParsedArgs {
 
     if (!parsed.positionalName) {
       parsed.positionalName = arg;
+      continue;
+    }
+
+    if (!parsed.positionalOutDir) {
+      parsed.positionalOutDir = arg;
       continue;
     }
 

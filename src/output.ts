@@ -6,44 +6,6 @@ import directoryTree = require('directory-tree');
 import figures = require('figures');
 import { PlanItem } from './types';
 
-type TreeNode = {
-  name: string;
-  children: Map<string, TreeNode>;
-  isFile: boolean;
-};
-
-function buildTreeFromPaths(rootLabel: string, paths: string[]): string {
-  const root: TreeNode = { name: rootLabel, children: new Map(), isFile: false };
-
-  for (const rawPath of paths) {
-    const parts = rawPath.split(path.sep).filter(Boolean);
-    let current = root;
-    parts.forEach((part, index) => {
-      const isLast = index === parts.length - 1;
-      let child = current.children.get(part);
-      if (!child) {
-        child = { name: part, children: new Map(), isFile: isLast };
-        current.children.set(part, child);
-      }
-      if (isLast) {
-        child.isFile = true;
-      }
-      current = child;
-    });
-  }
-
-  const toArchyNode = (node: TreeNode): archy.Data => {
-    const entries = Array.from(node.children.values()).sort((a, b) => a.name.localeCompare(b.name));
-    const isDir = node.children.size > 0;
-    return {
-      label: isDir ? chalk.cyan(`${node.name}/`) : chalk.white(node.name),
-      nodes: entries.map((child) => toArchyNode(child))
-    };
-  };
-
-  return archy(toArchyNode(root));
-}
-
 function buildTreeFromDirectory(rootPath: string): string {
   const tree = directoryTree(rootPath, { attributes: ['type'] }) as directoryTree.DirectoryTree | null;
   if (!tree) return '';
@@ -109,7 +71,6 @@ export function printSummary(
   plan: PlanItem[],
   outDir: string,
   vars: Record<string, string>,
-  isDryRun: boolean,
   templateName: string,
   roots: string[]
 ) {
@@ -119,9 +80,9 @@ export function printSummary(
   console.log('');
 
   // Заголовок с иконкой
-  const statusIcon = isDryRun ? figures.info : figures.tick;
-  const statusColor = isDryRun ? chalk.blue : chalk.green;
-  const statusText = isDryRun ? 'Планируется генерация' : 'Успешно создан';
+  const statusIcon = figures.tick;
+  const statusColor = chalk.green;
+  const statusText = 'Успешно создан';
 
   console.log(statusColor(`${statusIcon}  ${statusText}: `) + chalk.bold.white(displayName));
   console.log('');
@@ -145,11 +106,12 @@ export function printSummary(
     console.log(chalk.dim('  (пусто)'));
   } else {
     for (const rootPath of roots) {
-      const treeOutput = (!isDryRun && fs.existsSync(rootPath))
-        ? buildTreeFromDirectory(rootPath)
-        : buildTreeFromPaths(path.basename(rootPath) || rootPath, plan
-            .map((item) => path.relative(rootPath, item.target))
-            .filter((rel) => rel && !rel.startsWith('..')));
+      const treeOutput = fs.existsSync(rootPath) ? buildTreeFromDirectory(rootPath) : '';
+
+      if (!treeOutput) {
+        console.log(chalk.dim('  (пусто)'));
+        continue;
+      }
 
       // Добавляем отступ к дереву
       const indentedTree = treeOutput

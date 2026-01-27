@@ -5,13 +5,19 @@ import { printError, printWarnings, printSummary } from './output';
 import { PlanItem } from './types';
 import { normalizeArgs, resolveTemplateContext } from './validation';
 import { buildPlan, getCollisions, getExistingDirs, getRoots, getTopLevelDirs, writePlan } from './plan';
+import { maybeHandleUpdate } from './update';
 
 function resolvePath(baseDir: string, inputPath: string): string {
   if (path.isAbsolute(inputPath)) return path.normalize(inputPath);
   return path.resolve(baseDir, inputPath);
 }
 
-function run() {
+async function run() {
+  const shouldContinue = await maybeHandleUpdate(process.argv.slice(2));
+  if (!shouldContinue) {
+    return;
+  }
+
   let parsed;
   try {
     parsed = parseArgs(process.argv);
@@ -38,8 +44,8 @@ function run() {
   const normalized = normalizedResult.normalized;
 
   const cwd = process.cwd();
-  const templatesDir = resolvePath(cwd, normalized.templatesPath ?? '.templates');
-  const outDir = resolvePath(cwd, normalized.outDir ?? '.');
+  const templatesDir = resolvePath(cwd, '.templates');
+  const outDir = resolvePath(cwd, normalized.positionalOutDir ?? '.');
 
   const templateResult = resolveTemplateContext(
     templatesDir,
@@ -57,10 +63,9 @@ function run() {
   const existingDirs = getExistingDirs(outDir, topLevelDirs);
 
   const redWarnings: string[][] = [];
-  const warnings: string[][] = [];
 
   if (existingDirs.length > 0) {
-    if (!normalized.overwrite && !normalized.dryRun) {
+    if (!normalized.overwrite) {
       printError(
         'Папка назначения уже существует',
         existingDirs.map((dir) => path.join(outDir, dir)),
@@ -81,41 +86,25 @@ function run() {
     const collisions = getCollisions(plan);
 
     if (collisions.length > 0 && !normalized.overwrite) {
-      if (normalized.dryRun) {
-        warnings.push([
-          'Файлы уже существуют:',
-          ...collisions.map((target) => `  - ${path.relative(outDir, target)}`),
-          'Используйте --overwrite для перезаписи.'
-        ]);
-      } else {
-        printError(
-          'Файлы уже существуют',
-          collisions.map((target) => path.relative(outDir, target)),
-          'Используйте --overwrite для перезаписи'
-        );
-        process.exitCode = 1;
-        return;
-      }
+      printError(
+        'Файлы уже существуют',
+        collisions.map((target) => path.relative(outDir, target)),
+        'Используйте --overwrite для перезаписи'
+      );
+      process.exitCode = 1;
+      return;
     }
   }
 
   const roots = getRoots(outDir, plan);
 
-  if (normalized.dryRun) {
-    printSummary(plan, outDir, normalized.vars, true, normalized.templateName!, roots);
-    printWarnings(redWarnings, warnings);
-    return;
-  }
-
   writePlan(plan, normalized.vars, normalized.overwrite);
 
-  printSummary(plan, outDir, normalized.vars, false, normalized.templateName!, roots);
-  printWarnings(redWarnings, warnings);
+  printSummary(plan, outDir, normalized.vars, normalized.templateName!, roots);
+  printWarnings(redWarnings, []);
 }
 
-try {
-  run();
-} catch (error) {
+run().catch((error) => {
   console.error(String(error));
   process.exitCode = 1;
-}
+});

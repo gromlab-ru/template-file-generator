@@ -20,19 +20,28 @@ export function normalizeArgs(parsed: ParsedArgs): { normalized: ParsedArgs; err
     };
   }
 
-  if (normalized.positionalName && normalized.vars.name) {
+  if (normalized.vars.name) {
     return {
       normalized,
       error: {
-        title: 'name задан дважды',
-        details: ['позиционно и через --name']
+        title: 'Переменная name задается только позиционно',
+        details: ['уберите --name и укажите <имя> после шаблона']
       }
     };
   }
 
-  if (normalized.positionalName && !normalized.vars.name) {
-    normalized.vars.name = normalized.positionalName;
+  if (!normalized.positionalName) {
+    return {
+      normalized,
+      error: {
+        title: 'Требуется имя',
+        details: ['укажите <имя> после шаблона'],
+        showHelp: true
+      }
+    };
   }
+
+  normalized.vars.name = normalized.positionalName;
 
   if (normalized.extra.length > 0) {
     return {

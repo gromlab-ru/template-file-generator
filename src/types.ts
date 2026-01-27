@@ -1,11 +1,10 @@
 export type ParsedArgs = {
   templateName?: string;
   positionalName?: string;
-  templatesPath?: string;
-  outDir?: string;
+  positionalOutDir?: string;
   vars: Record<string, string>;
   overwrite: boolean;
-  dryRun: boolean;
+  skipUpdate: boolean;
   help: boolean;
   extra: string[];
 };

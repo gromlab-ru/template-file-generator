@@ -1,16 +1,22 @@
 {
   "name": "@gromlab/create",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Template-based file generator CLI",
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
   "bin": {
-    "gromlab-create": "dist/cli.js"
+    "gromlab-create": "dist/cli.js",
+    "create": "dist/cli.js"
   },
   "main": "dist/cli.js",
   "files": [
     "dist"
   ],
   "scripts": {
-    "build": "tsc -p tsconfig.json",
+    "clear": "node -e \"require('fs').rmSync('dist', { recursive: true, force: true })\"",
+    "build": "npm run clear && tsc -p tsconfig.json",
     "dev": "tsc -p tsconfig.json -w",
     "prepare": "npm run build"
   },
@@ -20,7 +26,8 @@
     "chalk": "^4.1.2",
     "change-case-all": "^2.1.0",
     "directory-tree": "^3.5.2",
-    "figures": "^3.2.0"
+    "figures": "^3.2.0",
+    "ora": "^5.4.1"
   },
   "devDependencies": {
     "@types/archy": "^0.0.31",
