@@ -1,6 +1,6 @@
 {
   "name": "@gromlab/create",
-  "version": "0.1.4",
+  "version": "0.1.6",
   "description": "Template-based file generator CLI",
   "license": "MIT",
   "publishConfig": {

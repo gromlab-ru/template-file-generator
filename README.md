@@ -1,84 +1,119 @@
-# @gromlab/create
+# Template-based file generator
 
-CLI-утилита для генерации файлов из шаблонов.
+CLI utility for generating files and folder structures from customizable templates.
 
-## Установка
+## Installation
 
-Глобально:
+### Quick Start with npx
 
 ```bash
-npm i -g @gromlab/create
-```
-При запуске CLI проверяет доступность новой версии. Если вы выбираете «нет»,
-повторный запрос появится через 24 часа. Чтобы пропустить проверку, используйте
-флаг `--skip-update`.
-
-## Автодополнение
-
-Установка вместе с автодополнением (одной командой):
-
-**bash**
-```bash
-npm i -g @gromlab/create && create install-autocomplete --shell bash && source ~/.bashrc
+npx @gromlab/create <template> <name>
 ```
 
-**zsh**
+### Global Installation (Recommended)
+Global installation provides the `create` command with **autocomplete** for template names.
+
+**1. Install:**
 ```bash
-npm i -g @gromlab/create && create install-autocomplete --shell zsh && source ~/.zshrc
+npm i -g @gromlab/create && create install-autocomplete
 ```
 
-**fish**
+**2. Reload your shell:**
 ```bash
-npm i -g @gromlab/create && create install-autocomplete --shell fish && exec fish
+# macOS (zsh)
+source ~/.zshrc
+
+# Linux (bash)
+source ~/.bashrc
+
+# Linux (fish)
+exec fish
 ```
 
-
-## Использование
+## Usage
 
 ```bash
-create <шаблон> <имя> [путь] [опции]
+create <template> <name> [path] [options]
 ```
 
-Если `[путь]` не указан, файлы создаются в директории, где запущен CLI.
+If `[path]` is not specified, files are created in the current directory.
 
-## Пример
+## Example
 
 ```bash
-# Создать компонент из шаблона
+# Create a component from template
 create component Button
 
-# Указать папку вывода позиционно
+# Specify output folder positionally
 create component Button src/components
 ```
 
-## Шаблоны
+## Templates
 
-Шаблоны хранятся в папке `.templates/`. Каждая подпапка — отдельный шаблон.
+Templates are stored in the `.templates/` folder at the project root. Each subfolder is a separate template.
+
+### Creating a Template
+
+1. Create a folder in `.templates/` with the template name
+2. Add files and folders using variables in names and content
+3. Variables are enclosed in double curly braces: `{{variable}}`
+
+The number of variables is unlimited — use any names you need.
+
+### Structure
 
 ```
 .templates/
-└── component/
-    ├── {{name.pascal}}/
-    │   ├── index.ts
-    │   ├── {{name.pascal}}.tsx
-    │   └── {{name.pascal}}.module.css
+├── component/
+│   └── {{name.pascalCase}}/
+│       ├── index.ts
+│       ├── {{name.pascalCase}}.tsx
+│       └── {{name.pascalCase}}.module.css
+└── zustand-store/
+    └── {{name.camelCase}}Store/
+        ├── index.ts
+        ├── {{name.camelCase}}Store.ts
+        └── {{name.camelCase}}Store.type.ts
 ```
 
-### Переменные
+### Variables
 
-В именах файлов и содержимом доступны переменные:
-- `{{name}}` — исходное значение
-- `{{name.pascal}}` — PascalCase
-- `{{name.camel}}` — camelCase
-- `{{name.kebab}}` — kebab-case
-- `{{name.snake}}` — snake_case
+Variables are substituted in file/folder names and file contents. You can use any variables in templates — the CLI will prompt for values for all found variables.
 
-Переменная `name` задается только позиционным аргументом `<имя>`. Использование `--name` запрещено.
+- `name` — required variable, set by positional argument
+- Custom variables are passed via flags: `--author "John Doe"`
 
-## Опции
+**Case Modifiers:**
 
-| Опция | Описание |
-|-------|----------|
-| `--overwrite` | Перезаписать существующие файлы |
-| `--skip-update` | Не проверять обновления CLI |
-| `--<переменная> <значение>` | Произвольная переменная шаблона |
+| Syntax | Result for `myButton` |
+|--------|----------------------|
+| `{{name}}` | myButton |
+| `{{name.pascalCase}}` | MyButton |
+| `{{name.camelCase}}` | myButton |
+| `{{name.kebabCase}}` | my-button |
+| `{{name.snakeCase}}` | my_button |
+| `{{name.screamingSnakeCase}}` | MY_BUTTON |
+
+```bash
+# Template with {{name}} and {{author}} variables
+create component Button --author "John Doe"
+```
+
+### Template Content Example
+
+```tsx
+// {{name.pascalCase}}.tsx
+import styles from './{{name.pascalCase}}.module.css'
+
+export const {{name.pascalCase}} = () => {
+  return <div className={styles.wrapper}>{{name.pascalCase}}</div>
+}
+```
+
+## Options
+
+| Option | Description |
+|--------|-------------|
+| `--overwrite` | Overwrite existing files |
+| `--skip-update` | Skip CLI update check |
+| `--<variable> <value>` | Custom template variable |
