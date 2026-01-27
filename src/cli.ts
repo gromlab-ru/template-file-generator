@@ -6,6 +6,7 @@ import { PlanItem } from './types';
 import { normalizeArgs, resolveTemplateContext } from './validation';
 import { buildPlan, getCollisions, getExistingDirs, getRoots, getTopLevelDirs, writePlan } from './plan';
 import { maybeHandleUpdate } from './update';
+import { handleInternalCommand } from './completion';
 
 function resolvePath(baseDir: string, inputPath: string): string {
   if (path.isAbsolute(inputPath)) return path.normalize(inputPath);
@@ -13,7 +14,10 @@ function resolvePath(baseDir: string, inputPath: string): string {
 }
 
 async function run() {
-  const shouldContinue = await maybeHandleUpdate(process.argv.slice(2));
+  const args = process.argv.slice(2);
+  if (handleInternalCommand(args)) return;
+
+  const shouldContinue = await maybeHandleUpdate(args);
   if (!shouldContinue) {
     return;
   }

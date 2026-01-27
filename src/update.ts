@@ -5,22 +5,11 @@ import * as https from 'https';
 import * as readline from 'readline';
 import { spawnSync } from 'child_process';
 import ora = require('ora');
+import { detectRunMode } from './runtime';
 
 const PACKAGE_NAME = '@gromlab/create';
 const UPDATE_TIMEOUT_MS = 2000;
 const UPDATE_PROMPT_COOLDOWN_MS = 24 * 60 * 60 * 1000;
-
-function isNpxInvocation(): boolean {
-  const argv1 = process.argv[1] ?? '';
-  const npmCommand = process.env.npm_command ?? '';
-  const npmExecPath = process.env.npm_execpath ?? '';
-
-  if (argv1.includes(`${path.sep}_npx${path.sep}`)) return true;
-  if (npmCommand === 'exec') return true;
-  if (npmExecPath.includes('npx-cli.js')) return true;
-
-  return false;
-}
 
 function getUpdateStatePath(): string {
   const xdgHome = process.env.XDG_CONFIG_HOME;
@@ -180,7 +169,7 @@ function hasSkipUpdateFlag(args: string[]): boolean {
 }
 
 export async function maybeHandleUpdate(args: string[]): Promise<boolean> {
-  if (isNpxInvocation()) return true;
+  if (detectRunMode() === 'npx') return true;
   if (hasSkipUpdateFlag(args)) return true;
   if (!isInteractive()) return true;
 
