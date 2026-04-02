@@ -1,6 +1,6 @@
 {
   "name": "@gromlab/create",
-  "version": "0.1.7",
+  "version": "0.2.0",
   "description": "Template-based file generator CLI",
   "author": "Gromov Sergei",
   "license": "MIT",
@@ -27,7 +27,8 @@
     "gromlab-create": "dist/cli.js",
     "create": "dist/cli.js"
   },
-  "main": "dist/cli.js",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "files": [
     "dist"
   ],

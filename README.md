@@ -117,3 +117,27 @@ export const {{name.pascalCase}} = () => {
 | `--overwrite` | Overwrite existing files |
 | `--skip-update` | Skip CLI update check |
 | `--<variable> <value>` | Custom template variable |
+
+## Programmatic API
+
+The package can be used as a library:
+
+```typescript
+import { buildPlan, writePlan, collectTemplateVariables } from '@gromlab/create';
+```
+
+| Function | Description |
+|---|---|
+| `renderTemplate(input, vars)` | Substitutes variables and modifiers in a string |
+| `collectTemplateVariables(templateDir)` | Collects all variable names from a template |
+| `listTemplateNames(templatesDir)` | Lists available templates (subdirectories) |
+| `findNearestTemplatesDir(startDir)` | Walks up the directory tree looking for `.templates` |
+| `readDirRecursive(dir)` | Recursive list of all files in a directory |
+| `resolveTemplateContext(templatesDir, name, vars)` | Validates template and variables |
+| `buildPlan(templateDir, outDir, vars, files)` | Builds generation plan (source → target) |
+| `writePlan(plan, vars, overwrite)` | Writes files to disk according to the plan |
+| `getCollisions(plan)` | Lists plan files that already exist on disk |
+| `getExistingDirs(outDir, dirs)` | Checks which directories already exist |
+| `getTopLevelDirs(outDir, plan)` | Top-level directories from the plan |
+| `getRoots(outDir, plan)` | Root paths for summary output |
+| `CASE_MODIFIERS` | Case modifier functions dictionary |

@@ -70,3 +70,21 @@ export function listTemplateNames(templatesDir: string): string[] {
   const entries = fs.readdirSync(templatesDir, { withFileTypes: true });
   return entries.filter((entry) => entry.isDirectory()).map((entry) => entry.name).sort();
 }
+
+export function findNearestTemplatesDir(startDir: string): string | undefined {
+  let current = path.resolve(startDir);
+  while (true) {
+    const candidate = path.join(current, '.templates');
+    try {
+      if (fs.existsSync(candidate) && fs.statSync(candidate).isDirectory()) {
+        return candidate;
+      }
+    } catch {
+      // ignore errors and keep walking up
+    }
+    const parent = path.dirname(current);
+    if (parent === current) break;
+    current = parent;
+  }
+  return undefined;
+}

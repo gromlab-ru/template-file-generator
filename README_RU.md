@@ -117,3 +117,27 @@ export const {{name.pascalCase}} = () => {
 | `--overwrite` | Перезаписать существующие файлы |
 | `--skip-update` | Не проверять обновления CLI |
 | `--<переменная> <значение>` | Произвольная переменная шаблона |
+
+## Программный API
+
+Пакет можно использовать как библиотеку:
+
+```typescript
+import { buildPlan, writePlan, collectTemplateVariables } from '@gromlab/create';
+```
+
+| Функция | Назначение |
+|---|---|
+| `renderTemplate(input, vars)` | Подставляет переменные и модификаторы в строку |
+| `collectTemplateVariables(templateDir)` | Собирает все имена переменных из шаблона |
+| `listTemplateNames(templatesDir)` | Список доступных шаблонов (подпапки) |
+| `findNearestTemplatesDir(startDir)` | Ищет `.templates` вверх по дереву каталогов |
+| `readDirRecursive(dir)` | Рекурсивный список всех файлов в каталоге |
+| `resolveTemplateContext(templatesDir, name, vars)` | Валидация шаблона и переменных |
+| `buildPlan(templateDir, outDir, vars, files)` | Построение плана генерации (source → target) |
+| `writePlan(plan, vars, overwrite)` | Запись файлов на диск по плану |
+| `getCollisions(plan)` | Список файлов из плана, которые уже существуют |
+| `getExistingDirs(outDir, dirs)` | Проверка существующих директорий |
+| `getTopLevelDirs(outDir, plan)` | Директории верхнего уровня из плана |
+| `getRoots(outDir, plan)` | Корневые пути для итогового вывода |
+| `CASE_MODIFIERS` | Словарь модификаторов регистра |

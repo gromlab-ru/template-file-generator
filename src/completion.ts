@@ -1,29 +1,11 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { collectTemplateVariables, listTemplateNames } from './templateUtils';
+import { collectTemplateVariables, listTemplateNames, findNearestTemplatesDir } from './templateUtils';
 import { detectRunMode } from './runtime';
 
 const BIN_NAMES = ['gromlab-create', 'create'];
 const COMPLETION_BLOCK_START = '# gromlab-create completion start';
 const COMPLETION_BLOCK_END = '# gromlab-create completion end';
-
-function findNearestTemplatesDir(startDir: string): string | undefined {
-  let current = path.resolve(startDir);
-  while (true) {
-    const candidate = path.join(current, '.templates');
-    try {
-      if (fs.existsSync(candidate) && fs.statSync(candidate).isDirectory()) {
-        return candidate;
-      }
-    } catch {
-      // ignore errors and keep walking up
-    }
-    const parent = path.dirname(current);
-    if (parent === current) break;
-    current = parent;
-  }
-  return undefined;
-}
 
 function listTemplates(cwd: string): string[] {
   const dir = findNearestTemplatesDir(cwd);
