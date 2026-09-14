@@ -2,10 +2,10 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { collectTemplateVariables, listTemplateNames, findNearestTemplatesDir } from './templateUtils';
 import { detectRunMode } from './runtime';
+import { BIN_NAME } from './packageInfo';
 
-const BIN_NAMES = ['gromlab-create', 'create'];
-const COMPLETION_BLOCK_START = '# gromlab-create completion start';
-const COMPLETION_BLOCK_END = '# gromlab-create completion end';
+const COMPLETION_BLOCK_START = `# ${BIN_NAME} completion start`;
+const COMPLETION_BLOCK_END = `# ${BIN_NAME} completion end`;
 
 function listTemplates(cwd: string): string[] {
   const dir = findNearestTemplatesDir(cwd);
@@ -40,21 +40,21 @@ function printLines(items: string[]) {
 
 function buildBashCompletion(): string {
   return [
-    '# bash completion for gromlab-create',
+    `# bash completion for ${BIN_NAME}`,
     '',
-    '_gromlab_create_list_templates() {',
-    '  gromlab-create __list-templates --skip-update 2>/dev/null',
+    '_template_file_generator_list_templates() {',
+    `  ${BIN_NAME} __list-templates --skip-update 2>/dev/null`,
     '}',
     '',
-    '_gromlab_create_list_vars() {',
+    '_template_file_generator_list_vars() {',
     '  local template="$1"',
     '  if [[ -z "$template" ]]; then',
     '    return',
     '  fi',
-    '  gromlab-create __list-vars "$template" --skip-update 2>/dev/null',
+    `  ${BIN_NAME} __list-vars "$template" --skip-update 2>/dev/null`,
     '}',
     '',
-    '_gromlab_create_completions() {',
+    '_template_file_generator_completions() {',
     '  local cur="${COMP_WORDS[COMP_CWORD]}"',
     '  local cword=$COMP_CWORD',
     '  local template=""',
@@ -69,7 +69,7 @@ function buildBashCompletion(): string {
     '  done',
     '',
     '  if [[ $cword -eq 1 ]]; then',
-    '    COMPREPLY=( $(compgen -W "$(_gromlab_create_list_templates)" -- "$cur") )',
+    '    COMPREPLY=( $(compgen -W "$(_template_file_generator_list_templates)" -- "$cur") )',
     '    return',
     '  fi',
     '',
@@ -77,7 +77,7 @@ function buildBashCompletion(): string {
     '    local opts="--overwrite --skip-update --help -h"',
     '    local vars=""',
     '    if [[ -n "$template" ]]; then',
-    '      vars="$(_gromlab_create_list_vars "$template")"',
+    '      vars="$(_template_file_generator_list_vars "$template")"',
     '    fi',
     '    COMPREPLY=( $(compgen -W "$opts $vars" -- "$cur") )',
     '    return',
@@ -86,28 +86,28 @@ function buildBashCompletion(): string {
     '  compopt -o default 2>/dev/null',
     '}',
     '',
-    `complete -F _gromlab_create_completions ${BIN_NAMES.join(' ')}`,
+    `complete -F _template_file_generator_completions ${BIN_NAME}`,
     ''
   ].join('\n');
 }
 
 function buildZshCompletion(): string {
   return [
-    '#compdef gromlab-create create',
+    `#compdef ${BIN_NAME}`,
     '',
-    '_gromlab_create_list_templates() {',
-    '  gromlab-create __list-templates --skip-update 2>/dev/null',
+    '_template_file_generator_list_templates() {',
+    `  ${BIN_NAME} __list-templates --skip-update 2>/dev/null`,
     '}',
     '',
-    '_gromlab_create_list_vars() {',
+    '_template_file_generator_list_vars() {',
     '  local template="$1"',
     '  if [[ -z "$template" ]]; then',
     '    return',
     '  fi',
-    '  gromlab-create __list-vars "$template" --skip-update 2>/dev/null',
+    `  ${BIN_NAME} __list-vars "$template" --skip-update 2>/dev/null`,
     '}',
     '',
-    '_gromlab_create() {',
+    '_template_file_generator() {',
     '  local -a opts vars',
     '  local template=""',
     '  local w',
@@ -120,14 +120,14 @@ function buildZshCompletion(): string {
     '  done',
     '',
     '  if (( CURRENT == 2 )); then',
-    '    _values "templates" $(_gromlab_create_list_templates)',
+    '    _values "templates" $(_template_file_generator_list_templates)',
     '    return',
     '  fi',
     '',
     '  if [[ "${words[CURRENT]}" == --* ]]; then',
     '    opts=(--overwrite --skip-update --help -h)',
     '    if [[ -n "$template" ]]; then',
-    '      vars=($(_gromlab_create_list_vars "$template"))',
+    '      vars=($(_template_file_generator_list_vars "$template"))',
     '    else',
     '      vars=()',
     '    fi',
@@ -139,14 +139,14 @@ function buildZshCompletion(): string {
     '  _files',
     '}',
     '',
-    'compdef _gromlab_create gromlab-create create',
+    `compdef _template_file_generator ${BIN_NAME}`,
     ''
   ].join('\n');
 }
 
 function buildFishCompletion(): string {
   return [
-    'function __gromlab_create_template',
+    'function __template_file_generator_template',
     '  set -l tokens (commandline -opc)',
     '  for i in (seq 2 (count $tokens))',
     '    set -l token $tokens[$i]',
@@ -157,23 +157,23 @@ function buildFishCompletion(): string {
     '  end',
     'end',
     '',
-    'function __gromlab_create_list_templates',
-    '  gromlab-create __list-templates --skip-update 2>/dev/null',
+    'function __template_file_generator_list_templates',
+    `  ${BIN_NAME} __list-templates --skip-update 2>/dev/null`,
     'end',
     '',
-    'function __gromlab_create_list_vars',
-    '  set -l template (__gromlab_create_template)',
+    'function __template_file_generator_list_vars',
+    '  set -l template (__template_file_generator_template)',
     '  if test -n "$template"',
-    '    gromlab-create __list-vars $template --skip-update 2>/dev/null',
+    `    ${BIN_NAME} __list-vars $template --skip-update 2>/dev/null`,
     '  end',
     'end',
     '',
-    'for cmd in gromlab-create create',
-    '  complete -c $cmd -n "__fish_use_subcommand" -a "(__gromlab_create_list_templates)"',
+    `for cmd in ${BIN_NAME}`,
+    '  complete -c $cmd -n "__fish_use_subcommand" -a "(__template_file_generator_list_templates)"',
     '  complete -c $cmd -l overwrite -d "Перезаписывать существующие файлы"',
     '  complete -c $cmd -l skip-update -d "Не проверять обновления CLI"',
     '  complete -c $cmd -s h -l help -d "Справка"',
-    '  complete -c $cmd -n "string match -qr \"^--\" (commandline -ct)" -a "(__gromlab_create_list_vars)"',
+    '  complete -c $cmd -n "string match -qr \"^--\" (commandline -ct)" -a "(__template_file_generator_list_vars)"',
     'end',
     ''
   ].join('\n');
@@ -206,8 +206,8 @@ function detectShellFromEnv(): string | undefined {
 
 function printCompletionUsage() {
   console.log('Использование:');
-  console.log('  gromlab-create completion --shell <bash|zsh|fish>');
-  console.log('  gromlab-create install-autocomplete [--shell <bash|zsh|fish>]');
+  console.log(`  ${BIN_NAME} completion --shell <bash|zsh|fish>`);
+  console.log(`  ${BIN_NAME} install-autocomplete [--shell <bash|zsh|fish>]`);
 }
 
 function escapeRegExp(value: string): string {
@@ -219,7 +219,7 @@ function installForBashOrZsh(shell: 'bash' | 'zsh') {
   const rcFile = shell === 'bash'
     ? path.join(home, '.bashrc')
     : path.join(home, '.zshrc');
-  const sourceLine = `source <(gromlab-create completion --shell ${shell})`;
+  const sourceLine = `source <(${BIN_NAME} completion --shell ${shell})`;
   const block = `${COMPLETION_BLOCK_START}\n${sourceLine}\n${COMPLETION_BLOCK_END}`;
   const start = escapeRegExp(COMPLETION_BLOCK_START);
   const end = escapeRegExp(COMPLETION_BLOCK_END);
@@ -248,7 +248,7 @@ function installForBashOrZsh(shell: 'bash' | 'zsh') {
 function installForFish() {
   const home = process.env.HOME ?? '';
   const dir = path.join(home, '.config', 'fish', 'completions');
-  const filePath = path.join(dir, 'gromlab-create.fish');
+  const filePath = path.join(dir, `${BIN_NAME}.fish`);
   fs.mkdirSync(dir, { recursive: true });
   fs.writeFileSync(filePath, buildFishCompletion(), 'utf8');
   console.log(`Автодополнение установлено в ${filePath}`);

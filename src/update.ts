@@ -6,21 +6,21 @@ import * as readline from 'readline';
 import { spawnSync } from 'child_process';
 import ora = require('ora');
 import { detectRunMode } from './runtime';
+import { BIN_NAME, PACKAGE_NAME } from './packageInfo';
 
-const PACKAGE_NAME = '@gromlab/create';
 const UPDATE_TIMEOUT_MS = 2000;
 const UPDATE_PROMPT_COOLDOWN_MS = 24 * 60 * 60 * 1000;
 
 function getUpdateStatePath(): string {
   const xdgHome = process.env.XDG_CONFIG_HOME;
   if (xdgHome) {
-    return path.join(xdgHome, 'gromlab-create', 'update.json');
+    return path.join(xdgHome, BIN_NAME, 'update.json');
   }
   const appData = process.env.APPDATA;
   if (appData) {
-    return path.join(appData, 'gromlab-create', 'update.json');
+    return path.join(appData, BIN_NAME, 'update.json');
   }
-  return path.join(os.homedir(), '.gromlab-create', 'update.json');
+  return path.join(os.homedir(), `.${BIN_NAME}`, 'update.json');
 }
 
 function readDeclinedAt(): number | undefined {
@@ -153,7 +153,7 @@ function runUpdate(packageName: string): boolean {
 }
 
 function rerunCommand(args: string[]): never {
-  const binName = process.platform === 'win32' ? 'gromlab-create.cmd' : 'gromlab-create';
+  const binName = process.platform === 'win32' ? `${BIN_NAME}.cmd` : BIN_NAME;
   const result = spawnSync(binName, args, { stdio: 'inherit' });
 
   if (result.error) {

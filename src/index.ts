@@ -1,4 +1,4 @@
-// Программный API для @gromlab/create
+// Программный API для @gromlab/template-file-generator
 // CLI точка входа остаётся в cli.ts (bin)
 
 // Генерация

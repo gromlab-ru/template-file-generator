@@ -1,143 +1,163 @@
-# Template-based file generator
+# Template File Generator
 
-CLI utility for generating files and folder structures from customizable templates.
+English | [Русский](README_RU.md)
 
-## Installation
+`@gromlab/template-file-generator` generates text files and folder structures from local `.templates/`. It provides a CLI, a Node.js API, and a Russian-language agent skill.
 
-### Quick Start with npx
+Define a repeatable structure once: filenames, exports, types, styles, and boilerplate. Generate the next component, module, or service with consistent names in both paths and file contents instead of copying and renaming files manually.
+
+## Quick start
+
+Requires Node.js and npm. CI runs on Node.js 22 and 24.
+
+Create `.templates/module/{{name.kebabCase}}/index.ts`:
+
+```typescript
+export const {{name.camelCase}} = {};
+```
+
+Run from the directory containing `.templates/`:
 
 ```bash
-npx @gromlab/create <template> <name>
+npx --yes @gromlab/template-file-generator module user-profile src/modules --skip-update
 ```
 
-### Global Installation (Recommended)
-Global installation provides the `create` command with **autocomplete** for template names.
+The result is `src/modules/user-profile/index.ts`:
 
-**1. Install:**
-```bash
-npm i -g @gromlab/create && create install-autocomplete
+```typescript
+export const userProfile = {};
 ```
 
-**2. Reload your shell:**
-```bash
-# macOS (zsh)
-source ~/.zshrc
+The package uses your project's templates. Installing the CLI does not create `.templates/` or install a template collection.
 
-# Linux (bash)
-source ~/.bashrc
+## Agent skill
 
-# Linux (fish)
-exec fish
-```
+[skills/template-generation/SKILL.md](skills/template-generation/SKILL.md) teaches agents what the package does, when to use it, how to author templates, and how to generate and verify files. The skill and its references are written in Russian. Its main file includes a complete working example.
 
-## Usage
+Install for OpenCode in the current project:
 
 ```bash
-create <template> <name> [path] [options]
+npx skills add gromlab-ru/template-file-generator --skill template-generation --agent opencode
 ```
 
-If `[path]` is not specified, files are created in the current directory.
+Add `--global` for a user-wide installation. The `skills` installer also supports other compatible agents. Restart OpenCode after installation to load the skill. Installing the skill does not install the npm package.
 
-## Example
+## CLI installation
+
+### Project dependency
 
 ```bash
-# Create a component from template
-create component Button
-
-# Specify output folder positionally
-create component Button src/components
+npm install --save-dev @gromlab/template-file-generator
+npx --no-install template-file-generator module user-profile src/modules --skip-update
 ```
 
-## Templates
+Or add an npm script:
 
-Templates are stored in the `.templates/` folder at the project root. Each subfolder is a separate template.
-
-### Creating a Template
-
-1. Create a folder in `.templates/` with the template name
-2. Add files and folders using variables in names and content
-3. Variables are enclosed in double curly braces: `{{variable}}`
-
-The number of variables is unlimited — use any names you need.
-
-### Structure
-
-```
-.templates/
-├── component/
-│   └── {{name.pascalCase}}/
-│       ├── index.ts
-│       ├── {{name.pascalCase}}.tsx
-│       └── {{name.pascalCase}}.module.css
-└── zustand-store/
-    └── {{name.camelCase}}Store/
-        ├── index.ts
-        ├── {{name.camelCase}}Store.ts
-        └── {{name.camelCase}}Store.type.ts
-```
-
-### Variables
-
-Variables are substituted in file/folder names and file contents. You can use any variables in templates — the CLI will prompt for values for all found variables.
-
-- `name` — required variable, set by positional argument
-- Custom variables are passed via flags: `--author "John Doe"`
-
-**Case Modifiers:**
-
-| Syntax | Result for `myButton` |
-|--------|----------------------|
-| `{{name}}` | myButton |
-| `{{name.pascalCase}}` | MyButton |
-| `{{name.camelCase}}` | myButton |
-| `{{name.kebabCase}}` | my-button |
-| `{{name.snakeCase}}` | my_button |
-| `{{name.screamingSnakeCase}}` | MY_BUTTON |
-
-```bash
-# Template with {{name}} and {{author}} variables
-create component Button --author "John Doe"
-```
-
-### Template Content Example
-
-```tsx
-// {{name.pascalCase}}.tsx
-import styles from './{{name.pascalCase}}.module.css'
-
-export const {{name.pascalCase}} = () => {
-  return <div className={styles.wrapper}>{{name.pascalCase}}</div>
+```json
+{
+  "scripts": {
+    "generate": "template-file-generator"
+  }
 }
 ```
 
-## Options
+```bash
+npm run generate -- module user-profile src/modules --skip-update
+```
 
-| Option | Description |
-|--------|-------------|
-| `--overwrite` | Overwrite existing files |
-| `--skip-update` | Skip CLI update check |
-| `--<variable> <value>` | Custom template variable |
+### Global installation and completion
+
+```bash
+npm install --global @gromlab/template-file-generator
+template-file-generator install-autocomplete --shell bash
+```
+
+Use `--shell zsh` or `--shell fish` for those shells, then open a new shell. Completion is supported for globally installed CLI instances and suggests template names and variables.
+
+## Usage
+
+```text
+template-file-generator <template> <name> [path] [options]
+```
+
+- `<template>` is an immediate subdirectory of `.templates/`.
+- `<name>` is the required value of the `name` variable.
+- `[path]` is the output directory relative to the working directory, defaulting to `.`. Absolute paths are supported.
+- The CLI reads templates only from `<cwd>/.templates/`.
+
+In a monorepo, each application or package may own its `.templates/`. Run from the relevant scope, such as `apps/web` or `packages/ui`. Completion and the `findNearestTemplatesDir` API search ancestor directories; CLI generation does not.
+
+### Variables
+
+Variables are substituted in file contents and paths. Files must be UTF-8 text. All discovered variables are required; missing values cause an error rather than an interactive prompt.
+
+```bash
+# For a template containing {{author}}
+template-file-generator module user-profile src/modules --author "Platform Team" --skip-update
+```
+
+Use `{{name}}` for the original value or one of these modifiers:
+
+| Modifier | Result for `user-profile` |
+| --- | --- |
+| `pascalCase` | `UserProfile` |
+| `camelCase` | `userProfile` |
+| `kebabCase` | `user-profile` |
+| `snakeCase` | `user_profile` |
+| `screamingSnakeCase` | `USER_PROFILE` |
+| `upperCase` | `USER-PROFILE` |
+| `lowerCase` | `user-profile` |
+| `upperCaseAll` | `USERPROFILE` |
+| `lowerCaseAll` | `userprofile` |
+
+For example: `{{name.pascalCase}}.ts`. Modifiers work with any variable. Templates do not support conditions, loops, or automatic escaping. Binary files and empty directories are not supported.
+
+### Options
+
+| Option | Purpose |
+| --- | --- |
+| `--<variable> <value>` | String variable; `--key=value` is also supported |
+| `--overwrite` | Overwrite files included in the generation plan |
+| `--skip-update` | Disable the CLI update check |
+| `-h`, `--help` | Show help |
+
+Without `--overwrite`, an existing top-level template output directory or a file collision blocks generation. Writes are sequential and a filesystem error may leave partial output. `--templates`, `--out`, and `--output` are unsupported. The CLI has no `--dry-run` option.
 
 ## Programmatic API
 
-The package can be used as a library:
+```javascript
+const { renderTemplate } = require('@gromlab/template-file-generator');
 
-```typescript
-import { buildPlan, writePlan, collectTemplateVariables } from '@gromlab/create';
+renderTemplate('{{name.pascalCase}}.ts', { name: 'user-profile' });
+// 'UserProfile.ts'
 ```
 
-| Function | Description |
-|---|---|
-| `renderTemplate(input, vars)` | Substitutes variables and modifiers in a string |
-| `collectTemplateVariables(templateDir)` | Collects all variable names from a template |
-| `listTemplateNames(templatesDir)` | Lists available templates (subdirectories) |
-| `findNearestTemplatesDir(startDir)` | Walks up the directory tree looking for `.templates` |
-| `readDirRecursive(dir)` | Recursive list of all files in a directory |
-| `resolveTemplateContext(templatesDir, name, vars)` | Validates template and variables |
-| `buildPlan(templateDir, outDir, vars, files)` | Builds generation plan (source → target) |
-| `writePlan(plan, vars, overwrite)` | Writes files to disk according to the plan |
-| `getCollisions(plan)` | Lists plan files that already exist on disk |
-| `getExistingDirs(outDir, dirs)` | Checks which directories already exist |
-| `getTopLevelDirs(outDir, plan)` | Top-level directories from the plan |
-| `getRoots(outDir, plan)` | Root paths for summary output |
-| `CASE_MODIFIERS` | Case modifier functions dictionary |
+For file generation, use `resolveTemplateContext`, `buildPlan`, collision checks, and `writePlan`. `buildPlan` previews target paths without writing. TypeScript declarations are included.
+
+[Complete API example and reference (Russian)](skills/template-generation/references/programmatic-api.md).
+
+## Documentation
+
+- [Package features (Russian)](docs/ru/FEATURES.md)
+- [CLI reference (Russian)](skills/template-generation/references/cli.md)
+- [Template authoring (Russian)](skills/template-generation/references/templates.md)
+- [Publishing and CI/CD (Russian)](docs/ru/RELEASING.md)
+- Repository examples: `.templates/component/` and `.templates/zustand-store/`.
+
+## Development
+
+```bash
+npm ci
+npm test
+npm run check:package
+```
+
+`npm ci` builds TypeScript through `prepare`. `npm run check` builds, tests, and verifies the packed npm artifact. CI runs on Node.js 22 and 24. Tags matching `v*` trigger npm Trusted Publishing.
+
+## Migrating from @gromlab/create
+
+Version `0.3.0` is published as `@gromlab/template-file-generator`. Update your dependency, imports, and npm scripts. The new command is `template-file-generator`; the new package does not provide the old `create` or `gromlab-create` aliases. Reinstall completion for the new command after a global migration.
+
+## License
+
+[MIT](LICENSE).

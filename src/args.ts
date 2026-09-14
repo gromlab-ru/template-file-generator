@@ -1,9 +1,10 @@
 import { ParsedArgs } from './types';
+import { BIN_NAME } from './packageInfo';
 
 export function printHelp() {
   const lines = [
     'Использование:',
-    '  gromlab-create <шаблон> <имя> [путь] [опции]',
+    `  ${BIN_NAME} <шаблон> <имя> [путь] [опции]`,
     '',
     'Аргументы:',
     '  <шаблон>            Имя шаблона',
@@ -21,8 +22,8 @@ export function printHelp() {
     '  -h, --help           Показать эту справку',
     '',
     'Примеры:',
-    '  gromlab-create component Button',
-    '  gromlab-create component Button src/components'
+    `  ${BIN_NAME} component Button`,
+    `  ${BIN_NAME} component Button src/components`
   ];
   console.log(lines.join('\n'));
 }

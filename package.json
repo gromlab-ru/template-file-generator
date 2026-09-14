@@ -1,16 +1,16 @@
 {
-  "name": "@gromlab/create",
-  "version": "0.2.0",
-  "description": "Template-based file generator CLI",
+  "name": "@gromlab/template-file-generator",
+  "version": "0.3.0",
+  "description": "Generate files and folder structures from local templates with a CLI, Node.js API, and agent skill",
   "author": "Gromov Sergei",
   "license": "MIT",
-  "homepage": "https://gromlab.ru/gromov/create",
+  "homepage": "https://github.com/gromlab-ru/template-file-generator#readme",
   "repository": {
     "type": "git",
-    "url": "https://gromlab.ru/gromov/create.git"
+    "url": "git+https://github.com/gromlab-ru/template-file-generator.git"
   },
   "bugs": {
-    "url": "https://gromlab.ru/gromov/create/issues"
+    "url": "https://github.com/gromlab-ru/template-file-generator/issues"
   },
   "keywords": [
     "cli",
@@ -18,25 +18,32 @@
     "template",
     "scaffold",
     "boilerplate",
-    "file-generator"
+    "file-generator",
+    "agent-skill"
   ],
   "publishConfig": {
-    "access": "public"
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
   },
   "bin": {
-    "gromlab-create": "dist/cli.js",
-    "create": "dist/cli.js"
+    "template-file-generator": "dist/cli.js"
   },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
-    "dist"
+    "dist",
+    "skills",
+    "README_RU.md"
   ],
   "scripts": {
     "clear": "node -e \"require('fs').rmSync('dist', { recursive: true, force: true })\"",
     "build": "npm run clear && tsc -p tsconfig.json",
     "dev": "tsc -p tsconfig.json -w",
-    "prepare": "npm run build"
+    "test": "node --test",
+    "check:package": "node scripts/check-package.cjs",
+    "check": "npm run build && npm test && npm run check:package",
+    "prepare": "npm run build",
+    "prepublishOnly": "npm run check"
   },
   "dependencies": {
     "archy": "^1.0.0",
