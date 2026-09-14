@@ -1,7 +1,7 @@
 {
   "name": "@gromlab/template-file-generator",
-  "version": "0.3.0",
-  "description": "Generate files and folder structures from local templates with a CLI, Node.js API, and agent skill",
+  "version": "0.3.1",
+  "description": "Generate files and folder structures from local templates with a CLI, Node.js API, and English/Russian agent skills",
   "author": "Gromov Sergei",
   "license": "MIT",
   "homepage": "https://github.com/gromlab-ru/template-file-generator#readme",

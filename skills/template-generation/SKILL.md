@@ -1,59 +1,60 @@
 ---
 name: template-generation
-description: "Обучает использованию @gromlab/template-file-generator: генерации файлов через CLI и Node.js API, созданию и изменению локальных .templates. Используй при работе с этим пакетом, настройке шаблонов или создании повторяемой структуры файлов — компонентов, модулей, сервисов и другого boilerplate. Помогает выбрать область шаблонов, передать переменные и проверить результат генерации."
+description: "Teaches agents to use @gromlab/template-file-generator: generating files through its CLI and Node.js API, and creating or updating local .templates. Use when working with this package, configuring templates, or creating repeatable file structures such as components, modules, services, and other boilerplate. Helps select the template scope, supply variables, and verify generated output."
 license: MIT
-compatibility: "Для запуска пакета требуются Node.js и npm. Для загрузки через npx нужен доступ к npm registry."
+compatibility: "Running the package requires Node.js and npm. Downloading it through npx requires access to the npm registry."
 metadata:
   package: "@gromlab/template-file-generator"
-  version: "0.3.0"
+  version: "0.3.1"
+  language: "en"
 ---
 
-# Генерация файлов из шаблонов
+# Template-based file generation
 
-## Что это за пакет и зачем он нужен
+## What this package is and why to use it
 
-`@gromlab/template-file-generator` — генератор текстовых файлов и структуры папок из локальных шаблонов. У него есть команда `template-file-generator` и программный API для Node.js. Шаблоны лежат в `.templates/` проекта, приложения или пакета монорепозитория.
+`@gromlab/template-file-generator` generates text files and folder structures from local templates. It provides the `template-file-generator` command and a Node.js API. Templates live in the `.templates/` directory of a project, application, or monorepo package.
 
-Пакет решает проблему повторяемого кода: при ручном копировании компонентов, модулей, сервисов или хранилищ легко забыть переименовать экспорт, потерять файл типов или перенести лишнюю бизнес-логику. Шаблон один раз фиксирует структуру, имена и исходный код. Генератор подставляет значения и воспроизводит это соглашение для новой сущности.
+The package solves repeatable-code problems: copying components, modules, services, or stores by hand can leave an old export name, omit a type file, or carry over unrelated business logic. A template defines the structure, names, and initial code once. The generator substitutes values and reproduces that convention for each new entity.
 
-Например, шаблон `module` с переменной `name=user-profile` может создать `user-profile/user-profile.ts` и `user-profile/index.ts`, согласованно подставив `userProfile` в экспорты. Шаблоны подходят для любых языков и фреймворков, если файлы текстовые и имеют кодировку UTF-8.
+For example, a `module` template with `name=user-profile` can create `user-profile/user-profile.ts` and `user-profile/index.ts`, consistently inserting `userProfile` into their exports. Templates work with any language or framework as long as the files are UTF-8 text.
 
-Модель работы: **выбрать локальный шаблон → задать имя и переменные → указать папку вывода → сгенерировать → проверить результат**. Содержимое шаблонов определяет проект; установка пакета сама по себе не создаёт `.templates/`.
+The workflow is: **select a local template → supply a name and variables → choose an output directory → generate → verify**. The project defines template contents; installing the package does not create `.templates/`.
 
-## Как запустить генерацию
+## How to run the generator
 
-Если проект уже задаёт генератор через npm scripts или локальную инструкцию, используй этот способ. Если установлен именно этот пакет, запускай его локальную версию через проектный script или `npx --no-install template-file-generator`.
+If the project already defines a generator through npm scripts or local instructions, follow that workflow. If this package is installed, use its project-local version through an npm script or `npx --no-install template-file-generator`.
 
-Если пакет ещё не установлен, разовый запуск версии, описанной этим скиллом:
+If it is not installed, run the version described by this skill on demand:
 
 ```bash
-npx --yes @gromlab/template-file-generator@0.3.0 <шаблон> <имя> [путь] [опции]
+npx --yes @gromlab/template-file-generator@0.3.1 <template> <name> [path] [options]
 ```
 
-Для регулярного использования можно добавить пакет в зависимости разработки:
+For regular use, add the package as a development dependency:
 
 ```bash
 npm install --save-dev @gromlab/template-file-generator
 npx --no-install template-file-generator module user-profile src/modules --author Platform --skip-update
 ```
 
-Разбор аргументов:
+Arguments:
 
-| Аргумент | Значение |
+| Argument | Meaning |
 | --- | --- |
-| `<шаблон>` | Имя непосредственной подпапки `.templates/`, например `module` |
-| `<имя>` | Обязательное значение переменной `name`, например `user-profile` |
-| `[путь]` | Папка вывода относительно рабочего каталога; по умолчанию `.`. Допустим абсолютный путь |
-| `--author Platform` | Значение произвольной переменной `author`; также поддерживается `--author=Platform` |
-| `--skip-update` | Отключение проверки обновлений CLI; удобно для работы агента |
-| `--overwrite` | Разрешение перезаписи файлов, перечисленных в плане генерации |
-| `--help` | Справка по CLI |
+| `<template>` | An immediate subdirectory of `.templates/`, such as `module` |
+| `<name>` | The required value of the `name` variable, such as `user-profile` |
+| `[path]` | Output directory relative to the working directory; defaults to `.`. Absolute paths are supported |
+| `--author Platform` | A custom variable named `author`; `--author=Platform` is also supported |
+| `--skip-update` | Disable the CLI update check; useful for agent execution |
+| `--overwrite` | Allow overwriting files included in the generation plan |
+| `--help` | Display CLI help |
 
-**Рабочий каталог важен:** CLI читает только `<cwd>/.templates/`. Позиционный `[путь]` меняет место вывода, а не место поиска шаблонов. Если шаблоны находятся в `apps/web/.templates/`, задавай рабочий каталог команды `apps/web`; тогда `src/modules` означает `apps/web/src/modules`.
+**The working directory matters:** the CLI only reads `<cwd>/.templates/`. The positional `[path]` changes the output location, not the template search location. For `apps/web/.templates/`, set the command's working directory to `apps/web`; then `src/modules` means `apps/web/src/modules`.
 
-## Полный пример: от шаблона до готовых файлов
+## Complete example: from a template to generated files
 
-Предположим, проекту нужен повторяемый модуль из файла реализации и файла экспорта. Создай такой шаблон, если он соответствует соглашениям проекта:
+Suppose the project needs a repeatable module with an implementation file and an export file. Create this template if it matches the project's conventions:
 
 ```text
 .templates/
@@ -63,7 +64,7 @@ npx --no-install template-file-generator module user-profile src/modules --autho
         └── index.ts
 ```
 
-Файл `.templates/module/{{name.kebabCase}}/{{name.kebabCase}}.ts`:
+File `.templates/module/{{name.kebabCase}}/{{name.kebabCase}}.ts`:
 
 ```typescript
 export const {{name.camelCase}} = {
@@ -71,19 +72,19 @@ export const {{name.camelCase}} = {
 };
 ```
 
-Файл `.templates/module/{{name.kebabCase}}/index.ts`:
+File `.templates/module/{{name.kebabCase}}/index.ts`:
 
 ```typescript
 export { {{name.camelCase}} } from './{{name.kebabCase}}';
 ```
 
-Запусти из каталога, содержащего `.templates/`:
+Run from the directory containing `.templates/`:
 
 ```bash
-npx --yes @gromlab/template-file-generator@0.3.0 module user-profile src/modules --author Platform --skip-update
+npx --yes @gromlab/template-file-generator@0.3.1 module user-profile src/modules --author Platform --skip-update
 ```
 
-Результат:
+Output:
 
 ```text
 src/modules/
@@ -92,7 +93,7 @@ src/modules/
     └── index.ts
 ```
 
-В `user-profile.ts` получится:
+Generated `user-profile.ts`:
 
 ```typescript
 export const userProfile = {
@@ -100,21 +101,21 @@ export const userProfile = {
 };
 ```
 
-В `index.ts` получится:
+Generated `index.ts`:
 
 ```typescript
 export { userProfile } from './user-profile';
 ```
 
-Папка `user-profile` уже заложена в шаблон. Передавай `src/modules`, чтобы не получить лишнюю вложенность `src/modules/user-profile/user-profile`.
+The template already includes the `user-profile` directory. Pass `src/modules` to avoid an extra `src/modules/user-profile/user-profile` nesting level.
 
-## Переменные и преобразования имён
+## Variables and naming transformations
 
-Переменные работают одновременно в именах файлов, именах папок и содержимом. `name` всегда задаётся вторым позиционным аргументом. Другие переменные передаются через `--ключ значение`. Все найденные в шаблоне переменные обязательны: при пропущенном или пустом значении CLI завершится с ошибкой и перечислит недостающие параметры.
+Variables apply to filenames, directory names, and file contents. `name` is always the second positional argument. Supply other variables as `--key value`. Every variable discovered in the template is required: a missing or empty value causes the CLI to exit with an error listing the missing parameters.
 
-Для `name=user-profile`:
+For `name=user-profile`:
 
-| Запись | Результат |
+| Expression | Result |
 | --- | --- |
 | `{{name}}` | `user-profile` |
 | `{{name.pascalCase}}` | `UserProfile` |
@@ -127,41 +128,43 @@ export { userProfile } from './user-profile';
 | `{{name.upperCaseAll}}` | `USERPROFILE` |
 | `{{name.lowerCaseAll}}` | `userprofile` |
 
-Эти же модификаторы работают с другими переменными, например `{{domain.pascalCase}}`. Используй в именах переменных латинские буквы, цифры и `_`, например `entity_name`. Поддерживается один модификатор после точки. Шаблонизатор выполняет текстовую подстановку: условия, циклы, выражения и автоматическое экранирование строк в него не входят.
+The same modifiers work with other variables, such as `{{domain.pascalCase}}`. Variable names use Latin letters, digits, and `_`, for example `entity_name`. One modifier after the dot is supported. The template engine performs text substitution; it does not evaluate conditions, loops, expressions, or automatically escape string values.
 
-## Рабочий алгоритм агента
+## Agent workflow
 
-1. **Прочитай инструкции проекта.** Определи назначение сущности, её архитектурное место и правила именования. Скилл не задаёт собственную архитектуру или фреймворк.
-2. **Выбери область шаблонов.** Найди `.templates/` нужного приложения или пакета и прочитай `.templates/README.md`, если он есть. В монорепозитории могут одновременно существовать `apps/web/.templates/` и `packages/ui/.templates/`.
-3. **Изучи существующий шаблон.** Проверь его пути, содержимое и все переменные. Если подходящий шаблон уже есть, используй его вместо ручного копирования модуля.
-4. **При необходимости подготовь шаблон.** Для новой повторяемой структуры выдели общую часть из реальных соглашений проекта, замени изменяемые имена переменными и сохрани в правильной `.templates/`. Затем создай нужную сущность через генератор. Для уникальной точечной правки новый шаблон не требуется.
-5. **Определи вывод и параметры.** Учти папки, уже заданные внутри шаблона, и собери значения всех переменных. Аргументы с пробелами заключай в кавычки. Используй подходящие для имён файлов и кода значения.
-6. **Запусти CLI из выбранной области.** Предпочитай установленную в проекте версию; для разового запуска используй команду выше. Сохрани код завершения и сообщение CLI.
-7. **Проверь результат.** Проверь фактические пути, подставленные имена, экспорты и отсутствие нераскрытых переменных. Добавь специфическую логику сущности и выполни относящиеся к ней проверки проекта.
-8. **Исправляй причину расхождений.** Если одинаковую правку придётся делать после каждой генерации, обнови шаблон. Изменение шаблона не обновляет автоматически уже сгенерированные файлы.
+1. **Read project instructions.** Identify the entity's purpose, architectural location, and naming conventions. This skill does not impose its own architecture or framework.
+2. **Select the template scope.** Find `.templates/` for the relevant application or package and read `.templates/README.md` if present. A monorepo may have both `apps/web/.templates/` and `packages/ui/.templates/`.
+3. **Inspect the existing template.** Check its paths, contents, and all variables. Use a suitable existing template instead of copying a module by hand.
+4. **Prepare a template when needed.** For a new repeatable structure, extract common conventions from the actual project, replace variable names with placeholders, and save it in the appropriate `.templates/`. Then generate the entity. A unique, localized edit does not require a new template.
+5. **Choose output and parameters.** Account for directories already included in the template and collect values for all variables. Quote arguments containing spaces. Use values suitable for the generated code and filenames.
+6. **Run the CLI from the selected scope.** Prefer the installed project version; use the command above for an on-demand invocation. Observe the exit code and CLI output.
+7. **Verify the result.** Check actual paths, substituted names, exports, and unresolved placeholders. Add entity-specific logic and run relevant project checks.
+8. **Fix recurring issues at their source.** If every generated entity needs the same adjustment, update the template. Changing a template does not automatically update files generated earlier.
 
-## Как разбирать ошибки
+## Troubleshooting
 
-| Ситуация | Действие |
+The CLI currently displays these errors in Russian:
+
+| Message | Action |
 | --- | --- |
-| `Папка шаблонов не найдена` | Проверь рабочий каталог и наличие `.templates/`; параметр вывода эту ошибку не исправляет |
-| `Шаблон не найден` | Прочитай перечисленные CLI имена и содержимое `.templates/` |
-| `Не заданы переменные шаблона` | Добавь указанные `--переменная значение`; CLI не запрашивает их интерактивно |
-| `Переменная name задается только позиционно` | Передай имя после имени шаблона, убери `--name` |
-| `Папка назначения уже существует` или `Файлы уже существуют` | Сравни назначение с задачей и существующими файлами; выбери новое имя/путь либо обоснованную перезапись |
-| `Шаблон пустой` | Добавь файлы: пустые папки сами по себе не генерируются |
+| `Папка шаблонов не найдена` | Template directory missing: check the working directory and `.templates/`; changing the output argument does not fix template lookup |
+| `Шаблон не найден` | Template missing: inspect the names listed by the CLI and the contents of `.templates/` |
+| `Не заданы переменные шаблона` | Missing variables: supply the listed `--variable value` arguments; values are not prompted interactively |
+| `Переменная name задается только позиционно` | Pass the name after the template name and remove `--name` |
+| `Папка назначения уже существует` or `Файлы уже существуют` | Output already exists: inspect the destination and existing files, then choose a new name/path or an intentional overwrite |
+| `Шаблон пустой` | Empty template: add files; empty directories alone are not generated |
 
-CLI отклоняет генерацию, если уже существует верхняя папка из плана, даже когда отдельные целевые файлы ещё не существуют. Применяй `--overwrite`, только когда задача действительно требует замены соответствующих файлов и их изменения проверены. Запись не является транзакцией: после ошибки файловой системы проверь, не осталось ли частично созданных файлов, прежде чем повторять команду.
+The CLI rejects generation when a top-level directory from the plan already exists, even if the target files are absent. Use `--overwrite` only when the task calls for replacing those files and you have reviewed their changes. Writes are not transactional: after a filesystem error, inspect any partial output before retrying.
 
-Используй только описанные опции. `--templates`, `--templatesPath`, `--templates-path`, `--out` и `--output` запрещены CLI. У него нет публичных команд `init`, `list` или опции `--dry-run`; произвольный флаг может интерпретироваться как переменная шаблона. Для справки:
+Use only the documented options. The CLI rejects `--templates`, `--templatesPath`, `--templates-path`, `--out`, and `--output`. It has no public `init` or `list` command and no `--dry-run` option; an arbitrary flag may be interpreted as a template variable. To display help:
 
 ```bash
-npx --yes @gromlab/template-file-generator@0.3.0 --help --skip-update
+npx --yes @gromlab/template-file-generator@0.3.1 --help --skip-update
 ```
 
-## Использование как библиотеки
+## Using the package as a library
 
-Для собственного генератора, интеграции с редактором или просмотра плана без записи используй Node.js API установленного пакета:
+For a custom generator, editor integration, or a preview without writing files, use the installed package's Node.js API:
 
 ```javascript
 const { renderTemplate } = require('@gromlab/template-file-generator');
@@ -170,12 +173,12 @@ const filename = renderTemplate('{{name.pascalCase}}.ts', { name: 'user-profile'
 // filename === 'UserProfile.ts'
 ```
 
-Для генерации файлов последовательность такая: `resolveTemplateContext` проверяет шаблон и переменные → `buildPlan` строит список `{ source, target }` → `getCollisions` и проверки директорий выявляют конфликты → `writePlan` записывает результат. В API переменная `name` передаётся в объекте значений. `buildPlan` не пишет на диск; ошибки результата валидации нужно обработать перед записью.
+For file generation: `resolveTemplateContext` validates the template and variables → `buildPlan` creates `{ source, target }` entries → `getCollisions` and directory checks detect existing output → `writePlan` writes files. In the API, pass `name` in the variables object. `buildPlan` does not write to disk; handle validation errors before writing.
 
-## Дополнительные материалы
+## Additional references
 
-Основные сценарии полностью описаны выше. Открывай справочники по конкретной необходимости:
+The main scenarios are fully covered above. Open a reference when the task needs more detail:
 
-- [Справочник CLI](references/cli.md) — способы установки, npm scripts, глобальное автодополнение и режимы запуска.
-- [Проектирование шаблонов](references/templates.md) — извлечение повторяемой структуры, монорепозитории, ограничения и проверка шаблонов.
-- [Программный API](references/programmatic-api.md) — законченный пример построения и записи плана, типы и особенности функций.
+- [CLI reference](references/cli.md) — installation methods, npm scripts, global completion, and invocation modes.
+- [Template authoring](references/templates.md) — extracting repeatable structures, monorepo scopes, limitations, and validation.
+- [Programmatic API](references/programmatic-api.md) — complete plan-and-write example, types, and function behavior.

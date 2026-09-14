@@ -2,7 +2,7 @@
 
 English | [Русский](README_RU.md)
 
-`@gromlab/template-file-generator` generates text files and folder structures from local `.templates/`. It provides a CLI, a Node.js API, and a Russian-language agent skill.
+`@gromlab/template-file-generator` generates text files and folder structures from local `.templates/`. It provides a CLI, a Node.js API, and agent skills in English and Russian.
 
 Define a repeatable structure once: filenames, exports, types, styles, and boilerplate. Generate the next component, module, or service with consistent names in both paths and file contents instead of copying and renaming files manually.
 
@@ -32,15 +32,15 @@ The package uses your project's templates. Installing the CLI does not create `.
 
 ## Agent skill
 
-[skills/template-generation/SKILL.md](skills/template-generation/SKILL.md) teaches agents what the package does, when to use it, how to author templates, and how to generate and verify files. The skill and its references are written in Russian. Its main file includes a complete working example.
+[skills/template-generation/SKILL.md](skills/template-generation/SKILL.md) teaches agents what the package does, when to use it, how to author templates, and how to generate and verify files. The primary skill and its references are written in English. Its main file includes a complete working example.
 
-Install for OpenCode in the current project:
+Install the English skill in the current project:
 
 ```bash
-npx skills add gromlab-ru/template-file-generator --skill template-generation --agent opencode
+npx skills add gromlab-ru/template-file-generator --skill template-generation
 ```
 
-Add `--global` for a user-wide installation. The `skills` installer also supports other compatible agents. Restart OpenCode after installation to load the skill. Installing the skill does not install the npm package.
+Add `--global` for a user-wide installation. The installer lets you choose compatible agents. Restart your agent session after installation to load the skill. Installing the skill does not install the npm package. For the Russian skill, see [README_RU.md](README_RU.md).
 
 ## CLI installation
 
@@ -134,13 +134,13 @@ renderTemplate('{{name.pascalCase}}.ts', { name: 'user-profile' });
 
 For file generation, use `resolveTemplateContext`, `buildPlan`, collision checks, and `writePlan`. `buildPlan` previews target paths without writing. TypeScript declarations are included.
 
-[Complete API example and reference (Russian)](skills/template-generation/references/programmatic-api.md).
+[Complete API example and reference](skills/template-generation/references/programmatic-api.md).
 
 ## Documentation
 
 - [Package features (Russian)](docs/ru/FEATURES.md)
-- [CLI reference (Russian)](skills/template-generation/references/cli.md)
-- [Template authoring (Russian)](skills/template-generation/references/templates.md)
+- [CLI reference](skills/template-generation/references/cli.md)
+- [Template authoring](skills/template-generation/references/templates.md)
 - [Publishing and CI/CD (Russian)](docs/ru/RELEASING.md)
 - Repository examples: `.templates/component/` and `.templates/zustand-store/`.
 

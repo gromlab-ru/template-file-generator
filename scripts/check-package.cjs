@@ -27,10 +27,9 @@ try {
   const required = [
     'dist/cli.js', 'dist/index.js', 'dist/index.d.ts', 'dist/packageInfo.js',
     'package.json', 'README.md', 'README_RU.md', 'LICENSE',
-    'skills/template-generation/SKILL.md',
-    'skills/template-generation/references/cli.md',
-    'skills/template-generation/references/templates.md',
-    'skills/template-generation/references/programmatic-api.md',
+    ...['template-generation', 'template-generation-ru'].flatMap((name) => [
+      'SKILL.md', 'references/cli.md', 'references/templates.md', 'references/programmatic-api.md',
+    ].map((file) => `skills/${name}/${file}`)),
   ];
   for (const file of required) assert.ok(paths.has(file), `В npm-пакете отсутствует ${file}`);
   for (const file of paths) {

@@ -10,17 +10,21 @@ const manifest = require('../package.json');
 
 const root = path.resolve(__dirname, '..');
 const cli = path.join(root, 'dist/cli.js');
-const skillDir = path.join(root, 'skills/template-generation');
-const skill = fs.readFileSync(path.join(skillDir, 'SKILL.md'), 'utf8');
-const exampleBlocks = [...skill.matchAll(/```typescript\n([\s\S]*?)\n```/g)].map((match) => `${match[1]}\n`);
+const skills = ['template-generation', 'template-generation-ru'].map((name) => {
+  const dir = path.join(root, 'skills', name);
+  const source = fs.readFileSync(path.join(dir, 'SKILL.md'), 'utf8');
+  const blocks = [...source.matchAll(/```typescript\n([\s\S]*?)\n```/g)].map((match) => `${match[1]}\n`);
+  return { name, dir, source, blocks };
+});
+const exampleBlocks = skills[0].blocks;
 
-function fixture(t) {
+function fixture(t, blocks = exampleBlocks) {
   const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'template-file-generator-test-'));
   t.after(() => fs.rmSync(cwd, { recursive: true, force: true }));
   const template = path.join(cwd, '.templates/module/{{name.kebabCase}}');
   fs.mkdirSync(template, { recursive: true });
-  fs.writeFileSync(path.join(template, '{{name.kebabCase}}.ts'), exampleBlocks[0]);
-  fs.writeFileSync(path.join(template, 'index.ts'), exampleBlocks[1]);
+  fs.writeFileSync(path.join(template, '{{name.kebabCase}}.ts'), blocks[0]);
+  fs.writeFileSync(path.join(template, 'index.ts'), blocks[1]);
   return cwd;
 }
 
@@ -32,17 +36,19 @@ function run(cwd, args) {
   });
 }
 
-test('пример из корневого SKILL.md создаёт документированные файлы и экспорты', (t) => {
-  assert.ok(skill.includes('module user-profile src/modules --author Platform --skip-update'));
-  assert.equal(exampleBlocks.length, 4);
-  const cwd = fixture(t);
-  const result = run(cwd, ['module', 'user-profile', 'src/modules', '--author', 'Platform']);
-  assert.equal(result.status, 0, result.stderr);
-  const out = path.join(cwd, 'src/modules/user-profile');
-  assert.deepEqual(fs.readdirSync(out).sort(), ['index.ts', 'user-profile.ts']);
-  assert.equal(fs.readFileSync(path.join(out, 'user-profile.ts'), 'utf8'), exampleBlocks[2]);
-  assert.equal(fs.readFileSync(path.join(out, 'index.ts'), 'utf8'), exampleBlocks[3]);
-});
+for (const skill of skills) {
+  test(`${skill.name}: пример из корневого SKILL.md создаёт документированные файлы и экспорты`, (t) => {
+    assert.ok(skill.source.includes('module user-profile src/modules --author Platform --skip-update'));
+    assert.equal(skill.blocks.length, 4);
+    const cwd = fixture(t, skill.blocks);
+    const result = run(cwd, ['module', 'user-profile', 'src/modules', '--author', 'Platform']);
+    assert.equal(result.status, 0, result.stderr);
+    const out = path.join(cwd, 'src/modules/user-profile');
+    assert.deepEqual(fs.readdirSync(out).sort(), ['index.ts', 'user-profile.ts']);
+    assert.equal(fs.readFileSync(path.join(out, 'user-profile.ts'), 'utf8'), skill.blocks[2]);
+    assert.equal(fs.readFileSync(path.join(out, 'index.ts'), 'utf8'), skill.blocks[3]);
+  });
+}
 
 test('недостающая переменная вызывает ошибку до создания выходного каталога', (t) => {
   const cwd = fixture(t);
@@ -114,11 +120,13 @@ test('программный API валидирует, строит план б�
   assert.equal(fs.readFileSync(path.join(outDir, 'user-profile/user-profile.ts'), 'utf8'), exampleBlocks[2]);
 });
 
-test('таблица модификаторов в SKILL.md соответствует результату API', () => {
-  const rows = [...skill.matchAll(/\| `({{name(?:\.[a-zA-Z]+)?}})` \| `([^`]+)` \|/g)];
-  assert.equal(rows.length, 10);
-  for (const [, input, expected] of rows) {
-    assert.equal(api.renderTemplate(input, { name: 'user-profile' }), expected, input);
+test('таблицы модификаторов в обоих скиллах соответствуют результату API', () => {
+  for (const skill of skills) {
+    const rows = [...skill.source.matchAll(/\| `({{name(?:\.[a-zA-Z]+)?}})` \| `([^`]+)` \|/g)];
+    assert.equal(rows.length, 10, skill.name);
+    for (const [, input, expected] of rows) {
+      assert.equal(api.renderTemplate(input, { name: 'user-profile' }), expected, `${skill.name}: ${input}`);
+    }
   }
 });
 
@@ -147,21 +155,25 @@ test('автодополнение bash, zsh и fish вызывает новую
   }
 });
 
-test('метаданные скилла корректны, все локальные ссылки остаются внутри его папки', () => {
-  assert.match(skill, /^---\nname: template-generation\n/);
-  const description = skill.match(/^description: "(.+)"$/m)?.[1];
-  assert.ok(description && description.length <= 1024);
-  assert.match(description, /[А-Яа-яЁё]/);
-  assert.match(skill, /^license: MIT$/m);
-  const documents = [path.join(skillDir, 'SKILL.md'), ...fs.readdirSync(path.join(skillDir, 'references'))
-    .map((name) => path.join(skillDir, 'references', name))];
-  for (const document of documents) {
-    const text = fs.readFileSync(document, 'utf8');
-    for (const [, link] of text.matchAll(/\[[^\]]+\]\(([^)]+)\)/g)) {
-      if (/^(https?:|#)/.test(link)) continue;
-      const target = path.resolve(path.dirname(document), link.split('#')[0]);
-      assert.ok(target.startsWith(`${skillDir}${path.sep}`), link);
-      assert.ok(fs.existsSync(target), `${document}: ${link}`);
+test('оба скилла имеют корректные метаданные и самостоятельные локальные справочники', () => {
+  for (const skill of skills) {
+    assert.ok(skill.source.startsWith(`---\nname: ${skill.name}\n`));
+    const description = skill.source.match(/^description: "(.+)"$/m)?.[1];
+    assert.ok(description && description.length <= 1024);
+    if (skill.name.endsWith('-ru')) assert.match(description, /[А-Яа-яЁё]/);
+    else assert.doesNotMatch(description, /[А-Яа-яЁё]/);
+    assert.match(skill.source, /^license: MIT$/m);
+    assert.equal(skill.source.match(/^  version: "(.+)"$/m)?.[1], manifest.version);
+    const documents = [path.join(skill.dir, 'SKILL.md'), ...fs.readdirSync(path.join(skill.dir, 'references'))
+      .map((name) => path.join(skill.dir, 'references', name))];
+    for (const document of documents) {
+      const text = fs.readFileSync(document, 'utf8');
+      for (const [, link] of text.matchAll(/\[[^\]]+\]\(([^)]+)\)/g)) {
+        if (/^(https?:|#)/.test(link)) continue;
+        const target = path.resolve(path.dirname(document), link.split('#')[0]);
+        assert.ok(target.startsWith(`${skill.dir}${path.sep}`), link);
+        assert.ok(fs.existsSync(target), `${document}: ${link}`);
+      }
     }
   }
 });

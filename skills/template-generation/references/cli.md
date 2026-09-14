@@ -1,12 +1,12 @@
-# Справочник CLI
+# CLI reference
 
-Пакет: `@gromlab/template-file-generator`. Исполняемая команда: `template-file-generator`. Описанное поведение соответствует версии `0.3.0`.
+Package: `@gromlab/template-file-generator`. Executable: `template-file-generator`. This reference describes version `0.3.1`.
 
-## Выбор способа запуска
+## Choosing an invocation method
 
-### Установленная зависимость проекта
+### Project dependency
 
-Проверь `package.json`, lock-файл и локальную документацию. Если есть script генерации, используй его. Пример настройки после установки пакета в `devDependencies`:
+Inspect `package.json`, the lockfile, and local documentation. Use the project's generation script if one exists. After installing this package in `devDependencies`, a script can be configured as follows:
 
 ```json
 {
@@ -16,58 +16,58 @@
 }
 ```
 
-Запуск из каталога, содержащего нужную `.templates/` и этот `package.json`:
+Run from the directory containing both the intended `.templates/` and this `package.json`:
 
 ```bash
 npm run generate -- module user-profile src/modules --author Platform --skip-update
 ```
 
-Либо напрямую через установленный бин:
+Or invoke the installed executable directly:
 
 ```bash
 npx --no-install template-file-generator module user-profile src/modules --author Platform --skip-update
 ```
 
-В монорепозитории npm scripts выполняются в каталоге соответствующего пакета. Корневой script может выбрать другую область шаблонов, чем команда, запущенная непосредственно из приложения.
+In a monorepo, npm scripts run from their package directory. A root script may select a different template scope from a command invoked directly in an application directory.
 
-### Разовый запуск
+### On-demand execution
 
 ```bash
-npx --yes @gromlab/template-file-generator@0.3.0 module user-profile src/modules --author Platform --skip-update
+npx --yes @gromlab/template-file-generator@0.3.1 module user-profile src/modules --author Platform --skip-update
 ```
 
-`--yes` относится к `npx` и подтверждает загрузку пакета. `--skip-update` после аргументов относится к генератору. `npx` может обращаться к реестру и использовать npm-кеш; для воспроизводимого запуска указывай версию либо используй зависимость из lock-файла проекта.
+`--yes` belongs to `npx` and confirms package download. `--skip-update` after the arguments belongs to the generator. `npx` may access the registry and use the npm cache; pin a version or use a lockfile-backed project dependency for reproducible execution.
 
-### Глобальная установка
+### Global installation
 
 ```bash
 npm install --global @gromlab/template-file-generator
 template-file-generator module user-profile src/modules --author Platform --skip-update
 ```
 
-Глобальная установка удобна для человека, который регулярно использует CLI и автодополнение. Для запуска агентом достаточно локальной зависимости или `npx`.
+Global installation is useful for people who regularly use the CLI and shell completion. A project dependency or `npx` is sufficient for agents.
 
-## Аргументы и значения
+## Arguments and values
 
 ```text
-template-file-generator <шаблон> <имя> [путь] [опции]
+template-file-generator <template> <name> [path] [options]
 ```
 
-- Имя шаблона совпадает с именем непосредственной подпапки `.templates/`.
-- `name` задаётся только позиционно, даже если шаблон эту переменную не использует.
-- Каталог вывода по умолчанию равен рабочему каталогу команды.
-- `--ключ значение` и `--ключ=значение` задают строковую переменную.
-- Для значения с пробелами используй кавычки: `--author "Platform Team"`.
-- Если значение начинается с `-`, используй форму `--ключ=-значение`.
-- `--overwrite`, `--skip-update`, `--help` и `-h` заняты опциями CLI.
-- `--name`, `--templates`, `--templatesPath`, `--templates-path`, `--out`, `--output` не подходят для пользовательских переменных CLI.
-- Не передавай лишние позиционные аргументы или предполагаемые опции вроде `--dry-run` и `--version`.
+- The template name matches an immediate subdirectory of `.templates/`.
+- `name` is positional and required even when the template does not use it.
+- The output directory defaults to the command's working directory.
+- `--key value` and `--key=value` supply string variables.
+- Quote values containing spaces: `--author "Platform Team"`.
+- For a value starting with `-`, use `--key=-value`.
+- `--overwrite`, `--skip-update`, `--help`, and `-h` are CLI options.
+- `--name`, `--templates`, `--templatesPath`, `--templates-path`, `--out`, and `--output` are unsuitable as custom CLI variables.
+- Do not pass extra positional arguments or presumed options such as `--dry-run` and `--version`.
 
-Список переменных можно определить чтением путей и содержимого шаблона либо через `collectTemplateVariables` из программного API. При отсутствии значений CLI возвращает ошибку до создания файлов.
+Identify variables by reading template paths and contents or calling `collectTemplateVariables` through the API. Missing values cause an error before any files are created.
 
-## Область шаблонов
+## Template scope
 
-Для структуры:
+Given this structure:
 
 ```text
 apps/
@@ -75,21 +75,21 @@ apps/
 └── web/.templates/
 ```
 
-установи рабочий каталог процесса `apps/web`, чтобы использовать шаблоны web-приложения. `src/modules` в аргументе вывода будет отсчитываться от него.
+set the process working directory to `apps/web` to use the web application's templates. An output argument of `src/modules` is relative to that directory.
 
-CLI не ищет `.templates/` в родительских каталогах. Поиск вверх реализован отдельно в API `findNearestTemplatesDir` и автодополнении. Поэтому подсказка оболочки может показать шаблон, недоступный генерации из текущего вложенного каталога: перейди в выбранную область перед запуском.
+CLI generation does not search ancestor directories. Upward lookup is implemented separately by `findNearestTemplatesDir` and shell completion. A shell may therefore suggest a template that generation cannot access from a nested directory: switch the working directory to the chosen scope before generating.
 
-## Перезапись и результат
+## Overwriting and output
 
-Перед записью CLI проверяет верхние папки, заданные шаблоном, и конфликты файлов. Существующая верхняя папка блокирует запуск без `--overwrite`, даже если в ней нет одноимённого файла.
+Before writing, the CLI checks top-level directories defined by the template and file collisions. An existing top-level directory blocks generation without `--overwrite`, even when none of the target files exist inside it.
 
-`--overwrite` заменяет файлы, входящие в план. Остальные файлы папки не удаляются. Генератор не объединяет содержимое файлов и не обновляет старые результаты автоматически при изменении шаблона.
+`--overwrite` replaces files included in the plan. Other files are not removed. The generator does not merge file contents or automatically update existing output when a template changes.
 
-Успешная команда выводит пути, дерево результата и значения переменных. Ошибки аргументов, валидации и файловой системы приводят к ненулевому коду завершения. Запись последовательная, без отката: при сбое ввода-вывода проверь частичный результат.
+A successful command prints paths, an output tree, and variable values. Argument, validation, and filesystem errors result in a nonzero exit code. Writes are sequential with no rollback: inspect partial output after an I/O failure.
 
-## Автодополнение
+## Shell completion
 
-После глобальной установки:
+After global installation:
 
 ```bash
 template-file-generator install-autocomplete --shell bash
@@ -97,16 +97,16 @@ template-file-generator install-autocomplete --shell zsh
 template-file-generator install-autocomplete --shell fish
 ```
 
-Выполняй только команду для используемой оболочки. Установка меняет её пользовательскую конфигурацию. Для bash/zsh после установки открой новую оболочку или перечитай соответствующий rc-файл; для fish открой новую сессию.
+Run only the command for your shell. Installation changes that shell's user configuration. For bash/zsh, open a new shell or reload its rc file; for fish, open a new session.
 
-Вывод скрипта автодополнения без установки:
+Print a completion script without installing it:
 
 ```bash
 template-file-generator completion --shell bash
 ```
 
-Команды автодополнения предназначены для глобальной установки. Служебные `__list-templates` и `__list-vars <шаблон>` используются оболочкой; это не основной пользовательский интерфейс для генерации.
+Completion commands require global installation. The internal `__list-templates` and `__list-vars <template>` commands support the shell; they are not the main user-facing generation interface.
 
-## Обновление
+## Updating
 
-При интерактивном запуске CLI может предложить глобальное обновление пакета. При запуске через `npx`, без TTY или с `--skip-update` эта проверка пропускается. Для агента передавай `--skip-update`, а версию зависимости изменяй обычным способом через менеджер пакетов проекта.
+During an interactive invocation, the CLI may offer a global package update. This check is skipped under `npx`, without a TTY, or with `--skip-update`. Agents should pass `--skip-update` and change dependency versions through the project's package manager.

@@ -1,16 +1,16 @@
-# Программный API
+# Programmatic API
 
-Пакет экспортирует CommonJS-модуль и TypeScript-декларации. Его можно подключить через `require` в Node.js или через `import` в TypeScript с подходящей конфигурацией модулей.
+The package exports a CommonJS module and TypeScript declarations. Use `require` in Node.js or `import` in TypeScript with an appropriate module configuration.
 
 ```bash
 npm install --save-dev @gromlab/template-file-generator
 ```
 
-Для использования генератора во время работы приложения, а не только разработки, установи его как обычную зависимость.
+If the generator is needed at application runtime rather than just during development, install it as a regular dependency.
 
-## Законченный пример генерации
+## Complete generation example
 
-Сохрани скрипт, например, как `generate.cjs`. Предполагается, что шаблон `module` уже находится в `.templates/` рабочего каталога и использует переменные `name` и `author`.
+Save the following as a script such as `generate.cjs`. It assumes that a `module` template already exists in the working directory's `.templates/` and uses `name` and `author` variables.
 
 ```javascript
 const path = require('node:path');
@@ -38,45 +38,45 @@ const collisions = getCollisions(plan);
 const existingDirs = getExistingDirs(outDir, getTopLevelDirs(outDir, plan));
 
 if (collisions.length || existingDirs.length) {
-  throw new Error(`Назначение уже существует: ${[...collisions, ...existingDirs].join(', ')}`);
+  throw new Error(`Destination already exists: ${[...collisions, ...existingDirs].join(', ')}`);
 }
 
 console.table(plan);
 writePlan(plan, vars, false);
 ```
 
-Для предварительного просмотра остановись перед `writePlan`: разрешение контекста и построение плана не создают выходные файлы.
+For a preview, stop before `writePlan`: resolving the context and building the plan do not create output files.
 
-Этот пример повторяет консервативное поведение CLI при существующих верхних папках. Если интеграция должна добавлять новые файлы в существующую папку, можно проверять только `getCollisions`, сохранив `overwrite=false`. Это решение принимается на уровне вызывающего кода.
+This example matches the CLI's conservative behavior for existing top-level directories. If an integration should add new files to an existing directory, it can check only `getCollisions` while keeping `overwrite=false`. That policy belongs to the calling code.
 
-## Функции
+## Functions
 
-| Экспорт | Назначение |
+| Export | Purpose |
 | --- | --- |
-| `renderTemplate(input, vars)` | Подставить переменные и модификаторы в строку |
-| `collectTemplateVariables(templateDir)` | Получить `Set<string>` переменных из путей и содержимого файлов |
-| `listTemplateNames(templatesDir)` | Получить отсортированные имена непосредственных подпапок |
-| `findNearestTemplatesDir(startDir)` | Найти ближайшую `.templates/`, поднимаясь от `startDir` до корня файловой системы |
-| `readDirRecursive(dir)` | Получить пути обычных файлов рекурсивно |
-| `resolveTemplateContext(templatesDir, templateName, vars)` | Проверить каталог, имя шаблона, переменные и наличие файлов |
-| `buildPlan(templateDir, outDir, vars, files)` | Получить массив `{ source, target }` без записи |
-| `getCollisions(plan)` | Получить уже существующие целевые пути |
-| `getTopLevelDirs(outDir, plan)` | Получить относительные имена верхних папок из плана |
-| `getExistingDirs(outDir, dirs)` | Отфильтровать существующие папки из этого списка |
-| `getRoots(outDir, plan)` | Получить корневые пути результата для отображения |
-| `writePlan(plan, vars, overwrite)` | Прочитать исходные файлы, подставить переменные и записать результат |
-| `CASE_MODIFIERS` | Словарь функций преобразования регистра |
-| `normalizeArgs(parsed)` | Проверить разобранные аргументы CLI и преобразовать позиционное имя в `vars.name` |
+| `renderTemplate(input, vars)` | Substitute variables and modifiers in a string |
+| `collectTemplateVariables(templateDir)` | Return a `Set<string>` of variables found in file paths and contents |
+| `listTemplateNames(templatesDir)` | Return sorted immediate subdirectory names |
+| `findNearestTemplatesDir(startDir)` | Find the nearest `.templates/`, walking from `startDir` to the filesystem root |
+| `readDirRecursive(dir)` | Return regular file paths recursively |
+| `resolveTemplateContext(templatesDir, templateName, vars)` | Validate the directory, template name, variables, and presence of files |
+| `buildPlan(templateDir, outDir, vars, files)` | Return `{ source, target }` entries without writing |
+| `getCollisions(plan)` | Return existing target paths |
+| `getTopLevelDirs(outDir, plan)` | Return relative top-level directory names from the plan |
+| `getExistingDirs(outDir, dirs)` | Filter that list to existing directories |
+| `getRoots(outDir, plan)` | Return root output paths for display |
+| `writePlan(plan, vars, overwrite)` | Read source files, substitute variables, and write output |
+| `CASE_MODIFIERS` | Map of case-conversion functions |
+| `normalizeArgs(parsed)` | Validate parsed CLI arguments and assign the positional name to `vars.name` |
 
-Экспортируемые типы: `PlanItem`, `TemplateContext`, `ValidationError`, `ParsedArgs`.
+Exported types: `PlanItem`, `TemplateContext`, `ValidationError`, `ParsedArgs`.
 
-## Важные особенности
+## Behavioral details
 
-- В API `name` передаётся обычным свойством объекта `vars`; обязательность позиционного аргумента относится к CLI.
-- `resolveTemplateContext` возвращает `{ context }` или `{ error }`. При ошибке проверяй `title`, `details`, `hint`. Системные ошибки чтения могут выбрасываться как исключения.
-- Сам `renderTemplate` не валидирует полноту значений: пропущенную переменную он заменяет пустой строкой. Для генерации файлов сначала вызывай `resolveTemplateContext`.
-- `buildPlan` преобразует пути. Содержимое читается и преобразуется во время `writePlan`.
-- `writePlan(..., false)` открывает файлы с флагом `wx`, поэтому существующий файл не перезаписывается. Проверка перед записью всё равно полезна для понятной диагностики.
-- `writePlan(..., true)` заменяет целевые файлы без объединения содержимого. Посторонние файлы не удаляются.
-- Файлы записываются последовательно, без транзакции и автоматического отката при ошибке.
-- Для однозначного поведения передавай в API абсолютные пути и явно выбирай область шаблонов. `findNearestTemplatesDir` — вспомогательная функция; CLI не вызывает её для генерации.
+- In the API, `name` is an ordinary property of `vars`. The positional-argument requirement belongs to the CLI.
+- `resolveTemplateContext` returns `{ context }` or `{ error }`. Inspect `title`, `details`, and `hint` for validation errors. Filesystem read errors may throw exceptions.
+- `renderTemplate` itself does not validate completeness: it replaces missing variables with empty strings. Call `resolveTemplateContext` first when generating files.
+- `buildPlan` transforms paths. File contents are read and transformed during `writePlan`.
+- `writePlan(..., false)` opens files with `wx`, preventing existing files from being overwritten. A preflight collision check still provides better diagnostics.
+- `writePlan(..., true)` replaces target files without merging. Unrelated files are not removed.
+- Files are written sequentially with no transaction or automatic rollback on failure.
+- Pass absolute paths and explicitly select the template scope for predictable behavior. `findNearestTemplatesDir` is a helper; CLI generation does not call it.

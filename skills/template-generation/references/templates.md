@@ -1,21 +1,21 @@
-# Проектирование шаблонов
+# Template authoring
 
-## Как получить полезный шаблон
+## Creating a useful template
 
-1. Изучи несколько похожих сущностей проекта и локальные инструкции.
-2. Выдели повторяемые пути, файлы, экспорты и исходный код.
-3. Замени имя сущности на `{{name}}` с нужными модификаторами; независимые параметры выдели в отдельные переменные.
-4. Убери конкретные продуктовые данные и логику, которые не относятся ко всем будущим экземплярам.
-5. Сохрани файлы в `.templates/<имя-шаблона>/` нужной области.
-6. Сгенерируй сущность через пакет и проверь её как обычный код проекта.
+1. Read local instructions and inspect several similar entities in the project.
+2. Identify repeated paths, files, exports, and initial code.
+3. Replace the entity name with `{{name}}` and appropriate modifiers; use separate variables for independent parameters.
+4. Remove product-specific data and logic that do not apply to every future instance.
+5. Save the files under `.templates/<template-name>/` in the appropriate scope.
+6. Generate an entity with the package and verify it as normal project code.
 
-Изучение существующего кода помогает создать шаблон; генерацию следующих сущностей выполняй через шаблон. Если после каждого запуска приходится одинаково менять файлы, перенеси эту общую правку в шаблон.
+Existing code is a useful source of conventions when authoring a template; use the template to generate subsequent entities. If every run needs the same adjustment, move that adjustment into the template.
 
-## Файлы и директории
+## Files and directories
 
-Каждый непосредственный подкаталог `.templates/` — самостоятельный шаблон. Любой обычный файл внутри выбранного шаблона становится выходным файлом, включая README и dotfiles. Документацию всего набора удобно хранить в `.templates/README.md`: она не попадёт в результат выбранного шаблона.
+Each immediate subdirectory of `.templates/` is a separate template. Every regular file inside the selected template becomes an output file, including README files and dotfiles. Keep collection-level documentation in `.templates/README.md` so it is not included in a selected template's output.
 
-Вложенные пути сохраняются после подстановки переменных. Для шаблона:
+Nested paths are preserved after variable substitution. For this template:
 
 ```text
 .templates/service/
@@ -25,11 +25,11 @@
     └── index.ts
 ```
 
-назначение `src/services` уже достаточно: генератор сам добавит папку сущности.
+an output directory of `src/services` is sufficient: the generator adds the entity directory itself.
 
-Чтение и запись выполняются как UTF-8. Бинарные ресурсы не подходят для шаблона. Пустые папки и символические ссылки не воспроизводятся. Специальной обработки расширений `.tpl` и `.hbs` нет: такое расширение сохранится в выходном имени.
+Files are read and written as UTF-8. Binary resources are unsuitable for templates. Empty directories and symbolic links are not reproduced. Extensions such as `.tpl` and `.hbs` have no special treatment and remain in output filenames.
 
-## Синтаксис
+## Syntax
 
 ```text
 {{name}}
@@ -38,20 +38,20 @@
 {{ entity_name.camelCase }}
 ```
 
-Имя переменной распознаётся как последовательность латинских букв, цифр и `_`. Модификатор один, после точки. Доступны:
+A variable name is a sequence of Latin letters, digits, and `_`. A single modifier may follow the dot. Supported modifiers:
 
 - `pascalCase`, `camelCase`, `kebabCase`, `snakeCase`;
 - `screamingSnakeCase`;
 - `upperCase`, `lowerCase`;
-- `upperCaseAll`, `lowerCaseAll` — удаляют дефисы, подчёркивания и пробельные символы, затем меняют регистр.
+- `upperCaseAll`, `lowerCaseAll` — remove hyphens, underscores, and whitespace before changing case.
 
-Неизвестный модификатор не вызывает ошибку, а оставляет значение без преобразования. Проверяй написание по списку. Точечные обращения к вложенным объектам, цепочки модификаторов, условные блоки и циклы не поддерживаются.
+An unknown modifier does not raise an error: it leaves the value untransformed. Check spelling against the list. Nested object access, modifier chains, conditional blocks, and loops are not supported.
 
-Подстановка не экранирует значения для JavaScript, JSON, HTML или других форматов. Если значение вставляется в строковый литерал или имя файла, проверь, что оно подходит для этого места. `name` обычно задаёт имя сущности, а каталог вывода передаётся отдельным аргументом.
+Substitution does not escape values for JavaScript, JSON, HTML, or other formats. Check that a value is suitable for the string literal or filename where it is inserted. Usually `name` supplies an entity name while the output directory is a separate argument.
 
-## Монорепозиторий
+## Monorepos
 
-Размещай шаблон там, где действует соглашение:
+Place a template in the scope where its conventions apply:
 
 ```text
 apps/web/.templates/
@@ -59,17 +59,17 @@ apps/admin/.templates/
 packages/ui/.templates/
 ```
 
-Шаблон компонента UI-пакета может отличаться от компонента web-приложения. Выбор области должен предшествовать генерации. При нескольких `.templates/` CLI не объединяет их содержимое и не выбирает область по каталогу вывода.
+A UI-package component template may differ from a web-application component template. Select the scope before generating. The CLI does not merge multiple `.templates/` directories or infer the scope from the output directory.
 
-В `.templates/README.md` полезно описать назначение каждого шаблона, нужные параметры, ожидаемые каталоги вывода и команды с правильным рабочим каталогом.
+Use `.templates/README.md` to document each template's purpose, required parameters, expected output directories, and commands with the correct working directory.
 
-## Проверка шаблона
+## Verifying a template
 
-- Используй имя из нескольких слов, например `user-profile`, чтобы проверить преобразования регистра.
-- Проверь имена и содержимое всех созданных файлов, импорты и экспорты.
-- Проверь обязательные дополнительные переменные.
-- Выполни относящиеся к результату проверки проекта: например, проверку типов или существующие тесты.
-- Для пробной генерации используй выделенный временный каталог; учти, что вывод отсчитывается от рабочего каталога команды.
-- После успешной проверки удали только созданный для неё временный результат.
+- Use a multiword name such as `user-profile` to exercise case conversion.
+- Inspect the paths and contents of every generated file, including imports and exports.
+- Check required custom variables.
+- Run relevant project checks, such as type checking or existing tests.
+- Use a dedicated temporary directory for trial generation; output paths are relative to the command's working directory.
+- After verification, remove only the temporary output created for that trial.
 
-Изменение шаблона влияет на будущие запуски. Для уже существующего кода выполняй отдельное адресное изменение или осознанную регенерацию с проверкой отличий.
+Changing a template affects future invocations. Update existing code separately through targeted edits or intentional regeneration followed by diff review.

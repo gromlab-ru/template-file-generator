@@ -2,7 +2,7 @@
 
 [English](README.md) | Русский
 
-`@gromlab/template-file-generator` создаёт текстовые файлы и структуру папок из локальных `.templates/`. Пакет предоставляет CLI, программный API Node.js и русскоязычный скилл для AI-агентов.
+`@gromlab/template-file-generator` создаёт текстовые файлы и структуру папок из локальных `.templates/`. Пакет предоставляет CLI, программный API Node.js и скиллы для AI-агентов на английском и русском языках.
 
 Шаблон фиксирует повторяемую структуру один раз: имена файлов, экспорты, типы, стили и исходный код. При создании следующего компонента, модуля или сервиса генератор согласованно подставляет имя и другие переменные в пути и содержимое файлов.
 
@@ -32,15 +32,15 @@ export const userProfile = {};
 
 ## Скилл для AI-агентов
 
-[skills/template-generation/SKILL.md](skills/template-generation/SKILL.md) объясняет назначение пакета, решаемые проблемы, синтаксис, полный пример генерации и рабочий алгоритм агента. Основная инструкция и справочники написаны на русском языке.
+[skills/template-generation-ru/SKILL.md](skills/template-generation-ru/SKILL.md) объясняет назначение пакета, решаемые проблемы, синтаксис, полный пример генерации и рабочий алгоритм агента. Эта версия скилла и её справочники написаны на русском языке.
 
-Установка в текущий проект для OpenCode:
+Установка русского скилла в текущий проект:
 
 ```bash
-npx skills add gromlab-ru/template-file-generator --skill template-generation --agent opencode
+npx skills add gromlab-ru/template-file-generator --skill template-generation-ru
 ```
 
-Для глобальной установки добавьте `--global`. Инструмент `skills` также поддерживает другие совместимые агенты. После установки в OpenCode перезапустите его, чтобы новый скилл загрузился. Установка скилла и установка самого npm-пакета — отдельные операции.
+Для глобальной установки добавьте `--global`. Установщик предложит выбрать совместимые агенты. После установки перезапустите сессию агента, чтобы новый скилл загрузился. Установка скилла и установка самого npm-пакета — отдельные операции. Английская версия описана в [README.md](README.md).
 
 ## Установка CLI
 
@@ -134,13 +134,13 @@ renderTemplate('{{name.pascalCase}}.ts', { name: 'user-profile' });
 
 Для генерации файлов используйте `resolveTemplateContext`, `buildPlan`, проверки конфликтов и `writePlan`. `buildPlan` позволяет посмотреть план без записи. Пакет включает TypeScript-декларации.
 
-[Полный пример API и справочник функций](skills/template-generation/references/programmatic-api.md).
+[Полный пример API и справочник функций](skills/template-generation-ru/references/programmatic-api.md).
 
 ## Документация
 
 - [Возможности пакета](docs/ru/FEATURES.md)
-- [Справочник CLI](skills/template-generation/references/cli.md)
-- [Проектирование шаблонов](skills/template-generation/references/templates.md)
+- [Справочник CLI](skills/template-generation-ru/references/cli.md)
+- [Проектирование шаблонов](skills/template-generation-ru/references/templates.md)
 - [Публикация и CI/CD](docs/ru/RELEASING.md)
 - Примеры в репозитории: `.templates/component/` и `.templates/zustand-store/`.
 

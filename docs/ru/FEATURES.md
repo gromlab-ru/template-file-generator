@@ -1,6 +1,6 @@
 # Возможности Template File Generator
 
-Пакет `@gromlab/template-file-generator` предоставляет CLI `template-file-generator`, программный API и русскоязычный скилл `template-generation`.
+Пакет `@gromlab/template-file-generator` предоставляет CLI `template-file-generator`, программный API и два скилла: английский `template-generation` и русский `template-generation-ru`.
 
 ## Генерация
 
@@ -37,6 +37,6 @@ CLI определяет запуск через `npx`, локальный би�
 
 ## Программный API и скилл
 
-- [API](../../skills/template-generation/references/programmatic-api.md) позволяет валидировать шаблон, построить план без записи, проверить конфликты и записать файлы.
-- [Скилл](../../skills/template-generation/SKILL.md) обучает агента работе с пакетом на полном примере и описывает алгоритм применения шаблонов в проекте.
+- [API](../../skills/template-generation-ru/references/programmatic-api.md) позволяет валидировать шаблон, построить план без записи, проверить конфликты и записать файлы.
+- [Русский скилл](../../skills/template-generation-ru/SKILL.md) обучает агента работе с пакетом на полном примере и описывает алгоритм применения шаблонов в проекте. [Основной скилл](../../skills/template-generation/SKILL.md) содержит эти же инструкции на английском.
 - [Публикация](RELEASING.md) описывает CI на Node.js 22/24, первый ручной выпуск и последующие публикации через OIDC.
